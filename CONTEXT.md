@@ -1,6 +1,6 @@
-# Medicine Supply Risk
+# Sanitas
 
-This context describes how medicine availability depends on upstream supply conditions, and how supply risk becomes meaningful when it threatens patient care.
+Sanitas describes how medicine availability depends on upstream supply conditions, and how supply risk becomes meaningful when it threatens patient care.
 
 ## Language
 
