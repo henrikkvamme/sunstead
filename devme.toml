@@ -20,20 +20,26 @@ check = "command -v bun"
 provision = "curl -fsSL https://bun.sh/install | bash"
 trust = "manual"
 
-[step.deps]
-check = "test -d node_modules"
-provision = "bun install"
+[step.vp]
+check = "command -v vp"
+provision = "curl -fsSL https://vite.plus | bash && mkdir -p \"$HOME/.local/bin\" && ln -sfn \"$HOME/.vite-plus/bin/vp\" \"$HOME/.local/bin/vp\""
 trust = "auto"
 depends_on = ["bun"]
 
+[step.deps]
+check = "test -d node_modules"
+provision = "vp install"
+trust = "auto"
+depends_on = ["bun", "vp"]
+
 [step.db]
-check = "test -f drizzle/meta/_journal.json"
-provision = "bun run db:generate"
+check = "case \"$DATABASE_URL\" in file:*) test -f \"${DATABASE_URL#file:}\" ;; *) true ;; esac"
+provision = "bun run db:migrate"
 trust = "auto"
 depends_on = ["deps"]
 
 [service.web]
-cmd = "./node_modules/.bin/vp dev --host 0.0.0.0 --port {port}"
+cmd = "bun run dev --host 0.0.0.0 --port {port}"
 port = { base = 3000, slot_offset = 10 }
 url = "http://{host}:{port}"
-depends_on = ["deps"]
+depends_on = ["db"]
