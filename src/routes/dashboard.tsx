@@ -20,7 +20,7 @@ import {
   Sparkles,
   Waves,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "#/lib/cn";
 
@@ -61,7 +61,17 @@ type NodeDetails = Record<
   }
 >;
 
+type CommandPaletteItem = {
+  action: () => void;
+  icon: ReactNode;
+  id: string;
+  meta: string;
+  title: string;
+  token: string;
+};
+
 const selectedMedicineId = "med-meropenem";
+const selectedMedicineSlug = "meropenem-iv";
 const scriptedSourceId = "source-newer-port";
 
 const riskPathBase = [
@@ -76,12 +86,12 @@ const riskPathBase = [
 
 const graphNodes: GraphNode[] = [
   {
-    detail: { x: 17, y: 50 },
+    detail: { x: 10, y: 50 },
     id: selectedMedicineId,
     kind: "medicine",
     label: "Meropenem IV",
     metric: "87",
-    overview: { x: 47, y: 47 },
+    overview: { x: 50, y: 50 },
     risk: "critical",
     summary: "Carbapenem antibiotic with concentrated upstream API exposure.",
   },
@@ -90,7 +100,7 @@ const graphNodes: GraphNode[] = [
     kind: "medicine",
     label: "Piperacillin/Tazobactam",
     metric: "64",
-    overview: { x: 53, y: 40 },
+    overview: { x: 67, y: 38 },
     risk: "elevated",
     summary: "Shared beta-lactam inputs and tender dependency.",
   },
@@ -99,7 +109,7 @@ const graphNodes: GraphNode[] = [
     kind: "medicine",
     label: "Vancomycin IV",
     metric: "59",
-    overview: { x: 58, y: 51 },
+    overview: { x: 69, y: 60 },
     risk: "elevated",
     summary: "Sterile fill-finish capacity is tightening.",
   },
@@ -108,7 +118,7 @@ const graphNodes: GraphNode[] = [
     kind: "medicine",
     label: "Amoxicillin oral",
     metric: "42",
-    overview: { x: 43, y: 57 },
+    overview: { x: 50, y: 72 },
     risk: "watch",
     summary: "Seasonal demand pressure, supplier coverage remains adequate.",
   },
@@ -117,7 +127,7 @@ const graphNodes: GraphNode[] = [
     kind: "medicine",
     label: "Propofol 10 mg/ml",
     metric: "39",
-    overview: { x: 39, y: 44 },
+    overview: { x: 31, y: 60 },
     risk: "watch",
     summary: "Packaging and cold-chain signals require monitoring.",
   },
@@ -126,7 +136,7 @@ const graphNodes: GraphNode[] = [
     kind: "medicine",
     label: "Insulin glargine",
     metric: "18",
-    overview: { x: 51, y: 61 },
+    overview: { x: 31, y: 38 },
     risk: "stable",
     summary: "Redundant suppliers and stable demand signals.",
   },
@@ -135,17 +145,17 @@ const graphNodes: GraphNode[] = [
     kind: "medicine",
     label: "Saline bags",
     metric: "21",
-    overview: { x: 61, y: 43 },
+    overview: { x: 50, y: 28 },
     risk: "stable",
     summary: "Broad manufacturing base with low active risk.",
   },
   {
-    detail: { x: 31, y: 50 },
+    detail: { x: 25, y: 50 },
     id: "component-meropenem-api",
     kind: "component",
     label: "Meropenem API",
     metric: "single source",
-    overview: { x: 31, y: 33 },
+    overview: { x: 28, y: 24 },
     risk: "critical",
     summary: "Active ingredient depends on one approved upstream route.",
   },
@@ -154,7 +164,7 @@ const graphNodes: GraphNode[] = [
     kind: "component",
     label: "Beta-lactam intermediate",
     metric: "shared",
-    overview: { x: 30, y: 58 },
+    overview: { x: 25, y: 77 },
     risk: "elevated",
     summary: "Shared input touches three medicines in the network.",
   },
@@ -162,17 +172,17 @@ const graphNodes: GraphNode[] = [
     id: "component-sterile-vial",
     kind: "component",
     label: "Sterile vial line",
-    overview: { x: 31, y: 46 },
+    overview: { x: 27, y: 50 },
     risk: "watch",
     summary: "Fill-finish capacity affects IV presentations.",
   },
   {
-    detail: { x: 45, y: 50 },
+    detail: { x: 40, y: 50 },
     id: "supplier-aster",
     kind: "supplier",
     label: "Aster Pharma",
     metric: "91%",
-    overview: { x: 20, y: 38 },
+    overview: { x: 16, y: 34 },
     risk: "critical",
     summary: "Approved supplier carries most of the Meropenem API path.",
   },
@@ -181,7 +191,7 @@ const graphNodes: GraphNode[] = [
     kind: "supplier",
     label: "NordChem AB",
     metric: "backup",
-    overview: { x: 20, y: 62 },
+    overview: { x: 15, y: 66 },
     risk: "watch",
     summary: "Backup supplier exists, but qualification is not complete.",
   },
@@ -189,17 +199,17 @@ const graphNodes: GraphNode[] = [
     id: "supplier-sterifill",
     kind: "supplier",
     label: "SteriFill GmbH",
-    overview: { x: 72, y: 57 },
+    overview: { x: 80, y: 64 },
     risk: "stable",
     summary: "Stable sterile fill-finish supplier shared across products.",
   },
   {
-    detail: { x: 59, y: 50 },
+    detail: { x: 55, y: 50 },
     id: "place-vadodara",
     kind: "place",
     label: "Vadodara facility",
     metric: "GJ",
-    overview: { x: 12, y: 45 },
+    overview: { x: 12, y: 18 },
     risk: "critical",
     summary: "Manufacturing place intersects the active flood warning.",
   },
@@ -208,7 +218,7 @@ const graphNodes: GraphNode[] = [
     kind: "place",
     label: "Mundra port",
     metric: "route",
-    overview: { x: 12, y: 72 },
+    overview: { x: 12, y: 84 },
     risk: "elevated",
     summary: "Export route adds lead-time sensitivity for hospital tenders.",
   },
@@ -216,17 +226,17 @@ const graphNodes: GraphNode[] = [
     id: "place-eu-tender",
     kind: "place",
     label: "EU hospital tenders",
-    overview: { x: 79, y: 36 },
+    overview: { x: 82, y: 27 },
     risk: "watch",
     summary: "Tender qualification limits substitution speed.",
   },
   {
-    detail: { x: 73, y: 50 },
+    detail: { x: 70, y: 50 },
     id: "event-gujarat-flood",
     kind: "event",
     label: "Gujarat flood warning",
     metric: "48h",
-    overview: { x: 8, y: 25 },
+    overview: { x: 32, y: 12 },
     risk: "critical",
     summary: "Severe weather signal overlaps the active supplier place.",
   },
@@ -234,17 +244,17 @@ const graphNodes: GraphNode[] = [
     id: "event-seasonal-demand",
     kind: "event",
     label: "Respiratory season",
-    overview: { x: 82, y: 67 },
+    overview: { x: 84, y: 82 },
     risk: "watch",
     summary: "Demand pressure is present but not the active driver.",
   },
   {
-    detail: { x: 86, y: 39 },
+    detail: { x: 86, y: 38 },
     id: "source-monsoon",
     kind: "source",
     label: "Monsoon bulletin",
     metric: "public",
-    overview: { x: 4, y: 13 },
+    overview: { x: 15, y: 8 },
     risk: "critical",
     summary: "Evidence Satellite supporting the flood warning.",
   },
@@ -254,7 +264,7 @@ const graphNodes: GraphNode[] = [
     kind: "source",
     label: "Export delay report",
     metric: "source",
-    overview: { x: 4, y: 39 },
+    overview: { x: 10, y: 52 },
     risk: "elevated",
     summary: "Evidence Satellite supporting route sensitivity.",
   },
@@ -262,17 +272,17 @@ const graphNodes: GraphNode[] = [
     id: "source-shortage-registry",
     kind: "source",
     label: "Shortage registry",
-    overview: { x: 91, y: 24 },
+    overview: { x: 93, y: 16 },
     risk: "stable",
     summary: "No public shortage notice currently visible in the demo data.",
   },
   {
-    detail: { x: 86, y: 72 },
+    detail: { x: 86, y: 76 },
     id: scriptedSourceId,
     kind: "source",
     label: "Port operations update",
     metric: "new",
-    overview: { x: 6, y: 55 },
+    overview: { x: 18, y: 92 },
     risk: "elevated",
     summary: "Scripted new evidence added by the Graph Intelligence Agent.",
   },
@@ -490,15 +500,116 @@ const kindIcons: Record<GraphNode["kind"], ReactNode> = {
   supplier: <Factory aria-hidden size={15} />,
 };
 
+function buildOverviewLayout(nodes: GraphNode[]) {
+  const points = new Map(nodes.map((node) => [node.id, { ...node.overview }]));
+  const visibleNodes = nodes.filter((node) => points.has(node.id));
+
+  for (let iteration = 0; iteration < 72; iteration += 1) {
+    for (let index = 0; index < visibleNodes.length; index += 1) {
+      for (let nextIndex = index + 1; nextIndex < visibleNodes.length; nextIndex += 1) {
+        const first = visibleNodes[index];
+        const second = visibleNodes[nextIndex];
+        const firstPoint = points.get(first.id);
+        const secondPoint = points.get(second.id);
+
+        if (!firstPoint || !secondPoint) {
+          continue;
+        }
+
+        const minDistance =
+          first.kind === "medicine" && second.kind === "medicine"
+            ? 17
+            : first.kind === "medicine" || second.kind === "medicine"
+              ? 11
+              : 6.8;
+        const dx = secondPoint.x - firstPoint.x;
+        const dy = secondPoint.y - firstPoint.y;
+        const distance = Math.max(Math.hypot(dx, dy), 0.01);
+
+        if (distance >= minDistance) {
+          continue;
+        }
+
+        const force = ((minDistance - distance) / distance) * 0.18;
+        const moveX = dx * force;
+        const moveY = dy * force;
+
+        firstPoint.x -= moveX;
+        firstPoint.y -= moveY;
+        secondPoint.x += moveX;
+        secondPoint.y += moveY;
+      }
+    }
+
+    for (const node of visibleNodes) {
+      const point = points.get(node.id);
+
+      if (!point) {
+        continue;
+      }
+
+      const minX = node.kind === "medicine" ? 24 : 7;
+      const maxX = node.kind === "medicine" ? 76 : 93;
+      const minY = node.kind === "medicine" ? 23 : 8;
+      const maxY = node.kind === "medicine" ? 77 : 92;
+
+      point.x = Math.min(maxX, Math.max(minX, point.x));
+      point.y = Math.min(maxY, Math.max(minY, point.y));
+    }
+  }
+
+  return points;
+}
+
+function readUrlGraphMode(): GraphMode {
+  if (typeof window === "undefined") {
+    return "overview";
+  }
+
+  return new URLSearchParams(window.location.search).get("medicine") === selectedMedicineSlug
+    ? "focused"
+    : "overview";
+}
+
+function writeUrlGraphMode(
+  mode: GraphMode,
+  historyMethod: "pushState" | "replaceState" = "pushState",
+) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+
+  if (mode === "focused") {
+    url.searchParams.set("medicine", selectedMedicineSlug);
+  } else {
+    url.searchParams.delete("medicine");
+  }
+
+  const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+  const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  if (nextUrl === currentUrl) {
+    return;
+  }
+
+  window.history[historyMethod]({ sanitasGraphMode: mode }, "", nextUrl);
+}
+
 export function Dashboard() {
   const [mode, setMode] = useState<GraphMode>("overview");
   const [selectedNodeId, setSelectedNodeId] = useState(selectedMedicineId);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState("");
   const [investigationState, setInvestigationState] = useState<"idle" | "running" | "complete">(
     "idle",
   );
   const [addedEvidence, setAddedEvidence] = useState(false);
   const [pulsePath, setPulsePath] = useState(false);
+  const commandInputRef = useRef<HTMLInputElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
 
   const activePath = useMemo(
     () => new Set(addedEvidence ? [...riskPathBase, scriptedSourceId] : riskPathBase),
@@ -508,6 +619,22 @@ export function Dashboard() {
   const selectedDetails = nodeDetails[selectedNode.id] ?? nodeDetails[selectedMedicineId];
   const evidenceCount = addedEvidence ? 5 : 4;
   const confidence = addedEvidence ? "92%" : "88%";
+
+  const openCommandPalette = () => {
+    setCommandPaletteOpen(true);
+  };
+
+  const showOverview = () => {
+    setMode("overview");
+    setSelectedNodeId(selectedMedicineId);
+    writeUrlGraphMode("overview");
+  };
+
+  const closeCommandPalette = () => {
+    setCommandPaletteOpen(false);
+    setCommandQuery("");
+    window.requestAnimationFrame(() => searchButtonRef.current?.focus());
+  };
 
   useEffect(() => {
     if (investigationState !== "running") {
@@ -527,9 +654,45 @@ export function Dashboard() {
     };
   }, [investigationState]);
 
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const nextMode = readUrlGraphMode();
+
+      setMode(nextMode);
+      setSelectedNodeId(selectedMedicineId);
+    };
+
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        openCommandPalette();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (!commandPaletteOpen) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => commandInputRef.current?.focus());
+  }, [commandPaletteOpen]);
+
   const focusMedicine = () => {
     setMode("focused");
     setSelectedNodeId(selectedMedicineId);
+    writeUrlGraphMode("focused");
   };
 
   const startInvestigation = () => {
@@ -540,20 +703,66 @@ export function Dashboard() {
     setMode("focused");
     setSelectedNodeId("event-gujarat-flood");
     setInvestigationState("running");
+    writeUrlGraphMode("focused");
   };
+
+  const selectCommandNode = (node: GraphNode) => {
+    if (node.id === selectedMedicineId) {
+      focusMedicine();
+      return;
+    }
+
+    setSelectedNodeId(node.id);
+    setMode("focused");
+    writeUrlGraphMode("focused");
+  };
+
+  const commandItems: CommandPaletteItem[] = [
+    {
+      action: showOverview,
+      icon: <Waves aria-hidden size={15} />,
+      id: "show-network",
+      meta: "Return to the full medicine network",
+      title: "Show network",
+      token: "overview network all medicines",
+    },
+    {
+      action: startInvestigation,
+      icon: <FileSearch aria-hidden size={15} />,
+      id: "investigate-evidence",
+      meta: "Search newer sources and update the risk path",
+      title: "Investigate evidence",
+      token: "investigate evidence sources latest search",
+    },
+    ...graphNodes
+      .filter((node) => node.id !== scriptedSourceId || addedEvidence)
+      .map((node) => ({
+        action: () => selectCommandNode(node),
+        icon: kindIcons[node.kind],
+        id: node.id,
+        meta: `${node.kind}: ${node.summary}`,
+        title: node.label,
+        token: `${node.label} ${node.kind} ${node.summary} ${node.metric ?? ""}`,
+      })),
+  ];
 
   return (
     <main className={cn("medicine-graph-screen", `is-${mode}`)}>
       <nav className="medicine-graph-nav" aria-label="Medicine graph controls">
-        <button className="medicine-graph-brand" type="button" onClick={() => setMode("overview")}>
+        <button className="medicine-graph-brand" type="button" onClick={showOverview}>
           <span aria-hidden />
           <strong>Sanitas</strong>
         </button>
 
-        <button className="medicine-graph-search" type="button">
+        <button
+          className="medicine-graph-search"
+          ref={searchButtonRef}
+          type="button"
+          onClick={openCommandPalette}
+        >
           <Search aria-hidden size={15} />
           <span>
-            {mode === "overview" ? "Search medicines, suppliers, sources..." : "Meropenem IV"}
+            {mode === "overview" ? "Find medicine, supplier, source" : selectedNode.label}
           </span>
           <kbd>⌘K</kbd>
         </button>
@@ -561,17 +770,27 @@ export function Dashboard() {
         <div className="medicine-graph-nav-actions">
           <span className={cn("medicine-graph-risk-pill", mode === "focused" && "is-critical")}>
             <ShieldAlert aria-hidden size={15} />
-            {mode === "overview" ? "1 critical path" : "87 critical"}
+            {mode === "overview" ? "7 medicines" : "87 critical"}
           </span>
-          <button type="button" onClick={startInvestigation}>
+          <button
+            aria-label="Investigate evidence"
+            className="medicine-graph-investigate"
+            type="button"
+            onClick={startInvestigation}
+          >
             <FileSearch aria-hidden size={15} />
-            Investigate latest evidence
+            <span>Investigate</span>
           </button>
           <button aria-label="Graph Change Timeline" className="medicine-graph-alert" type="button">
             <Bell aria-hidden size={16} />
             <span>{addedEvidence ? 5 : 4}</span>
           </button>
-          <button aria-label="Open commands" className="medicine-graph-icon" type="button">
+          <button
+            aria-label="Open commands"
+            className="medicine-graph-icon"
+            type="button"
+            onClick={openCommandPalette}
+          >
             <Command aria-hidden size={16} />
           </button>
         </div>
@@ -581,7 +800,7 @@ export function Dashboard() {
         <div className="graph-status-strip" aria-hidden>
           <span>Medicine Risk Network</span>
           <span>{mode === "overview" ? "Network Overview" : "Medicine Risk Graph"}</span>
-          <span>Supplier chain pre-mapped</span>
+          <span>{mode === "overview" ? "Hospital medicines" : "Supplier chain mapped"}</span>
         </div>
 
         <MedicineRiskGraph
@@ -602,24 +821,183 @@ export function Dashboard() {
             setSelectedNodeId(node.id);
             if (mode === "overview") {
               setMode("focused");
+              writeUrlGraphMode("focused");
             }
           }}
         />
       </section>
 
-      <RiskSidePanel
-        key={selectedNode.id}
-        addedEvidence={addedEvidence}
-        confidence={confidence}
-        details={selectedDetails}
-        evidenceCount={evidenceCount}
-        investigationState={investigationState}
-        mode={mode}
-        node={selectedNode}
-        onBackToOverview={() => setMode("overview")}
-        onStartInvestigation={startInvestigation}
+      {mode === "focused" ? (
+        <RiskSidePanel
+          key={selectedNode.id}
+          addedEvidence={addedEvidence}
+          confidence={confidence}
+          details={selectedDetails}
+          evidenceCount={evidenceCount}
+          investigationState={investigationState}
+          mode={mode}
+          node={selectedNode}
+          onBackToOverview={showOverview}
+          onStartInvestigation={startInvestigation}
+        />
+      ) : null}
+
+      <CommandPalette
+        inputRef={commandInputRef}
+        isOpen={commandPaletteOpen}
+        items={commandItems}
+        query={commandQuery}
+        onClose={closeCommandPalette}
+        onQueryChange={setCommandQuery}
       />
     </main>
+  );
+}
+
+function CommandPalette({
+  inputRef,
+  isOpen,
+  items,
+  onClose,
+  onQueryChange,
+  query,
+}: {
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  isOpen: boolean;
+  items: CommandPaletteItem[];
+  onClose: () => void;
+  onQueryChange: (query: string) => void;
+  query: string;
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredItems = normalizedQuery
+    ? items.filter((item) => item.token.toLowerCase().includes(normalizedQuery))
+    : items;
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query, isOpen]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const runItem = (item: CommandPaletteItem) => {
+    item.action();
+    onClose();
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!filteredItems.length) {
+        return;
+      }
+      setActiveIndex((index) => Math.min(index + 1, filteredItems.length - 1));
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!filteredItems.length) {
+        return;
+      }
+      setActiveIndex((index) => Math.max(index - 1, 0));
+      return;
+    }
+
+    if (event.key === "Enter" && filteredItems[activeIndex]) {
+      event.preventDefault();
+      runItem(filteredItems[activeIndex]);
+      return;
+    }
+
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, input, [href], [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    ).filter((element) => !element.hasAttribute("disabled"));
+
+    const first = focusable[0];
+    const last = focusable.at(-1);
+
+    if (!first || !last) {
+      return;
+    }
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return;
+    }
+
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <div className="command-palette-backdrop" onMouseDown={onClose}>
+      <div
+        aria-label="Command palette"
+        aria-modal="true"
+        className="command-palette"
+        onKeyDown={handleKeyDown}
+        onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
+        role="dialog"
+      >
+        <div className="command-palette-search">
+          <Search aria-hidden size={17} />
+          <input
+            aria-label="Search medicines, suppliers, sources, and commands"
+            placeholder="Search graph"
+            ref={inputRef}
+            type="search"
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+          />
+          <kbd>Esc</kbd>
+        </div>
+
+        <div className="command-palette-results" role="listbox">
+          {filteredItems.length ? (
+            filteredItems.map((item, index) => (
+              <button
+                aria-selected={index === activeIndex}
+                className={cn(index === activeIndex && "is-active")}
+                key={item.id}
+                role="option"
+                type="button"
+                onClick={() => runItem(item)}
+                onMouseEnter={() => setActiveIndex(index)}
+              >
+                <span className="command-palette-item-icon">{item.icon}</span>
+                <span>
+                  <strong>{item.title}</strong>
+                  <small>{item.meta}</small>
+                </span>
+              </button>
+            ))
+          ) : (
+            <p className="command-palette-empty">No graph matches</p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -644,15 +1022,20 @@ function MedicineRiskGraph({
   pulsePath: boolean;
   selectedNodeId: string;
 }) {
-  const visibleNodes = graphNodes.filter((node) => node.id !== scriptedSourceId || addedEvidence);
+  const visibleNodes = graphNodes
+    .filter((node) => node.id !== scriptedSourceId || addedEvidence)
+    .filter((node) => mode === "overview" || activePath.has(node.id) || node.id === selectedNodeId);
   const byId = new Map(visibleNodes.map((node) => [node.id, node]));
   const visibleEdges = graphEdges.filter(
     (edge) => (!edge.scripted || addedEvidence) && byId.has(edge.from) && byId.has(edge.to),
   );
   const hoveredNode = hoveredNodeId ? byId.get(hoveredNodeId) : null;
+  const overviewLayout = buildOverviewLayout(visibleNodes);
 
   const pointFor = (node: GraphNode) =>
-    mode === "focused" && node.detail ? node.detail : node.overview;
+    mode === "focused" && node.detail
+      ? node.detail
+      : (overviewLayout.get(node.id) ?? node.overview);
   const pathFor = (edge: GraphEdge) => {
     const from = byId.get(edge.from);
     const to = byId.get(edge.to);
@@ -727,6 +1110,7 @@ function MedicineRiskGraph({
               node.id === selectedMedicineId && "is-critical-medicine",
               node.id === scriptedSourceId && "is-new-evidence",
               isSource && "is-evidence-satellite",
+              mode === "overview" && node.kind !== "medicine" && "is-overview-icon",
             )}
             key={node.id}
             onClick={() => {
