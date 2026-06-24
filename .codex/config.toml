@@ -1,0 +1,56 @@
+# Sunstead keeps the Codex surface focused on this repo's actual workflow.
+# General-purpose personal skills remain installed globally, but unrelated ones
+# are disabled here so workflow skill matching is less noisy.
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/boris/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/dev-profile/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/devme-herdr-agents/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/devme-remote/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/dokploy/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/handoff/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/herdr/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/natural-writing/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/openclaw/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/tech-radar/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/henrikkvamme/.agents/skills/verify-tui/SKILL.md"
+enabled = false
+
+[apps.gmail]
+enabled = false
+
+[apps.google_calendar]
+enabled = false
+
+[apps.google_drive]
+enabled = false

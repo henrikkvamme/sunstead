@@ -32,10 +32,29 @@ not format or modify that file unless the task asks for it. Format/check the
 files touched for the task, run `vp lint`, `vp test`, and `vp build` as
 appropriate, and report the unrelated blocker clearly in the handoff.
 
+## UI components
+
+Use the shared dashboard kit in `src/ui/dashboard.tsx` when building app-shell,
+dashboard, admin, monitoring, or agent-workflow screens. Route files should
+compose data with `AppDashboardShell`, `DashboardModuleSection`,
+`AppDashboardGrid`, `AppDashboardPanel`, and the related helpers from
+`#/ui/dashboard` instead of recreating sidebar, topbar, panel, chart, token, or
+agent-integration chrome locally.
+
 ## Agent skills
 
-Project-local skills live in `.agents/skills/`. Prefer those when invoking the
-workflow skills listed below.
+This repo uses the globally installed Matt Pocock workflow skills rather than
+checking duplicate skill copies into `.agents/skills/`. The project-specific
+routing context those skills need lives in `docs/agents/`.
+
+Use the workflow skills for their matching jobs:
+
+- `triage`, `to-issues`, and `to-prd` for Linear issue flow.
+- `tdd` and `diagnose` for implementation and debugging loops.
+- `domain-modeling`, `grill-with-docs`, `zoom-out`, and
+  `improve-codebase-architecture` for domain language and architecture work.
+- `setup-matt-pocock-skills` only if the `docs/agents/` routing files are
+  missing or stale.
 
 ### Issue tracker
 
