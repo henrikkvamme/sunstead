@@ -20,6 +20,9 @@ const config = defineConfig({
     options: { typeAware: true, typeCheck: true },
   },
   resolve: { tsconfigPaths: true },
+  server: {
+    allowedHosts: ["vps.goose-viper.ts.net"],
+  },
   plugins: [
     tailwindcss(),
     tanstackStart(),
