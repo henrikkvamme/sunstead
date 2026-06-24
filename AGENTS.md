@@ -6,6 +6,25 @@ This project is using Vite+, a unified toolchain built on top of Vite, Rolldown,
 
 Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 
+## Dev Server Workflow
+
+DevMe is the only supported way to run development servers in this repo. Do not
+start long-running servers with `vp dev`, `bun run dev`, `vp run storybook`, or
+`storybook dev` directly. Those commands create unmanaged processes on fixed
+ports and make multi-agent work confusing.
+
+Use DevMe for runtime state, URLs, logs, and restarts:
+
+- Start/repair services with `devme up -d`.
+- Check what is running with `devme status`.
+- Open services with `devme url web` and `devme url storybook`.
+- Read logs with `devme logs <service> --since 5m`, `devme logs --since 5m`,
+  or `devme doctor`.
+- Restart stale services with `devme restart web` or `devme restart storybook`.
+
+Ports are slot-aware. Do not assume `3000` or `6006`; use `devme status` or
+`devme url <service>` every time.
+
 ## Review Checklist
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
