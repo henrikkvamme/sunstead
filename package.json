@@ -6,7 +6,7 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vp dev --port 3000",
+    "dev": "vp dev",
     "generate-routes": "tsr generate",
     "check": "vp check",
     "check:fix": "vp check --fix",
@@ -55,6 +55,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "drizzle-kit": "^0.31.10",
     "jsdom": "^28.1.0",
+    "nitro": "^3.0.260610-beta",
     "typescript": "^6.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.1",
     "vite-plus": "0.2.1",

@@ -2,7 +2,10 @@ import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite-plus";
+
+const isVitest = process.env.VITEST === "true";
 
 const config = defineConfig({
   fmt: {
@@ -18,7 +21,13 @@ const config = defineConfig({
     options: { typeAware: true, typeCheck: true },
   },
   resolve: { tsconfigPaths: true },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  plugins: [
+    tailwindcss(),
+    tanstackStart(),
+    devtools(),
+    viteReact(),
+    isVitest ? null : nitro({ preset: "bun" }),
+  ],
 });
 
 export default config;
