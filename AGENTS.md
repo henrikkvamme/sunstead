@@ -17,3 +17,17 @@ logs, restarts, broken services, port questions, and environment debugging.
 Do not run `vp dev`, `bun run dev`, `vp run storybook`, or `storybook dev`
 directly. DevMe assigns slot-aware ports, so never assume `3000` or `6006`.
 Use `devme status` or `devme url <service>` every time.
+
+When doing browser-based visual work, prefer the user's configured browser/Chrome
+MCP if it is exposed in the current tool list. If it is not exposed, use
+Playwright as a fallback for public pages and local routes, save screenshots or
+scrape artifacts under `/tmp`, and do not commit those artifacts.
+
+Storybook must stay isolated from the app's TanStack Start Vite plugins. Keep
+Storybook pointed at `.storybook/vite.config.ts` and add only the minimal
+Storybook Vite config needed for Tailwind and path aliases.
+
+If `vp check` fails because of an unrelated pre-existing or untracked file, do
+not format or modify that file unless the task asks for it. Format/check the
+files touched for the task, run `vp lint`, `vp test`, and `vp build` as
+appropriate, and report the unrelated blocker clearly in the handoff.
