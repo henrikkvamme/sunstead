@@ -22,3 +22,9 @@ cmd = "vp dev --host 0.0.0.0 --port {port}"
 port = { base = 3000, slot_offset = 10 }
 url = "http://{host}:{port}"
 depends_on = ["deps"]
+
+[service.storybook]
+cmd = "vp exec storybook dev --host 0.0.0.0 --port {port}"
+port = { base = 6006, slot_offset = 10 }
+url = "http://{host}:{port}"
+depends_on = ["deps"]
