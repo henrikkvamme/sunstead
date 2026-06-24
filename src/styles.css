@@ -3593,3 +3593,804 @@ blockquote footer {
     font-size: 0.62rem;
   }
 }
+
+.medicine-graph-screen {
+  --sanitas-bg: oklch(0.12 0.018 205);
+  --sanitas-panel: oklch(0.17 0.02 205 / 92%);
+  --sanitas-border: oklch(0.36 0.026 205 / 64%);
+  --sanitas-border-soft: oklch(0.36 0.026 205 / 32%);
+  --sanitas-text: oklch(0.93 0.018 190);
+  --sanitas-muted: oklch(0.68 0.035 196);
+  --sanitas-faint: oklch(0.52 0.028 200);
+  --sanitas-critical: oklch(0.66 0.24 26);
+  --sanitas-elevated: oklch(0.75 0.16 62);
+  --sanitas-watch: oklch(0.72 0.12 174);
+  --sanitas-stable: oklch(0.72 0.04 205);
+  --sanitas-blue: oklch(0.73 0.12 216);
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 16% 42%, oklch(0.58 0.2 26 / 22%), transparent 25rem),
+    radial-gradient(circle at 65% 68%, oklch(0.48 0.12 178 / 15%), transparent 27rem),
+    linear-gradient(135deg, oklch(0.13 0.02 206), oklch(0.1 0.018 226) 54%, oklch(0.115 0.025 190));
+  color: var(--sanitas-text);
+}
+
+.medicine-graph-screen::before {
+  background-image:
+    linear-gradient(oklch(0.9 0.02 190 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.9 0.02 190 / 4%) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: radial-gradient(circle at 45% 52%, black 0 42rem, transparent 62rem);
+}
+
+.medicine-graph-screen::after {
+  background:
+    linear-gradient(90deg, transparent, oklch(0.66 0.24 26 / 8%), transparent),
+    radial-gradient(circle at 47% 50%, transparent 0 20rem, oklch(0.08 0.018 215 / 62%) 58rem);
+  mask-image: none;
+}
+
+.medicine-graph-nav {
+  right: 25.5rem;
+  left: 1.25rem;
+  grid-template-columns: auto minmax(14rem, 31rem) minmax(0, 1fr);
+  border-color: var(--sanitas-border);
+  border-radius: 10px;
+  background: linear-gradient(180deg, oklch(0.96 0.02 190 / 5%), transparent), var(--sanitas-panel);
+  backdrop-filter: blur(18px);
+}
+
+.medicine-graph-brand,
+.medicine-graph-search,
+.medicine-graph-nav-actions button,
+.medicine-graph-risk-pill {
+  border-color: var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.12 0.016 205 / 78%);
+  color: var(--sanitas-text);
+}
+
+.medicine-graph-brand {
+  border: 0;
+}
+
+.medicine-graph-brand span {
+  background: var(--sanitas-critical);
+  box-shadow: 0 0 22px oklch(0.66 0.24 26 / 54%);
+}
+
+.medicine-graph-brand strong {
+  color: var(--sanitas-text);
+}
+
+.medicine-graph-search {
+  color: var(--sanitas-muted);
+}
+
+.medicine-graph-search kbd {
+  border-color: var(--sanitas-border-soft);
+  background: oklch(0.1 0.015 205 / 84%);
+  color: var(--sanitas-faint);
+}
+
+.medicine-graph-risk-pill {
+  border-color: oklch(0.66 0.24 26 / 44%);
+  background: oklch(0.22 0.07 27 / 58%);
+  color: oklch(0.78 0.18 32);
+}
+
+.medicine-graph-risk-pill.is-critical {
+  box-shadow: 0 0 26px oklch(0.66 0.24 26 / 22%);
+}
+
+.medicine-graph-nav-actions button:hover,
+.medicine-graph-search:hover {
+  border-color: oklch(0.74 0.05 196 / 52%);
+  background: oklch(0.2 0.026 205 / 84%);
+}
+
+.medicine-graph-stage {
+  position: absolute;
+  inset: 5.75rem 24.5rem 0.75rem 0.75rem;
+  z-index: 5;
+  overflow: hidden;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 43% 49%, oklch(0.24 0.05 202 / 38%), transparent 24rem),
+    linear-gradient(180deg, oklch(0.18 0.025 205 / 36%), oklch(0.1 0.018 205 / 18%));
+}
+
+.graph-status-strip {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.9rem;
+  z-index: 14;
+  display: flex;
+  max-width: calc(100% - 2rem);
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  color: var(--sanitas-faint);
+  font-size: 0.72rem;
+}
+
+.graph-status-strip span {
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 999px;
+  background: oklch(0.12 0.016 205 / 64%);
+  padding: 0.34rem 0.52rem;
+}
+
+.medicine-risk-graph {
+  position: absolute;
+  inset: 0;
+}
+
+.medicine-risk-graph::before,
+.medicine-risk-graph::after {
+  position: absolute;
+  border: 1px solid oklch(0.68 0.05 190 / 9%);
+  border-radius: 50%;
+  content: "";
+}
+
+.medicine-risk-graph::before {
+  inset: 11% 8%;
+}
+
+.medicine-risk-graph::after {
+  inset: 21% 20%;
+}
+
+.medicine-risk-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.medicine-risk-link {
+  fill: none;
+  stroke: url("#sanitas-calm-link");
+  stroke-linecap: round;
+  stroke-width: 0.2;
+  opacity: 0.46;
+  transition:
+    d 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease,
+    stroke-width 220ms ease,
+    filter 220ms ease;
+  vector-effect: non-scaling-stroke;
+}
+
+.medicine-risk-link.risk-critical,
+.medicine-risk-link.is-active {
+  stroke: url("#sanitas-critical-link");
+}
+
+.medicine-risk-link.risk-elevated {
+  stroke: var(--sanitas-elevated);
+}
+
+.medicine-risk-link.risk-watch {
+  stroke: var(--sanitas-watch);
+}
+
+.medicine-risk-link.is-active {
+  filter: drop-shadow(0 0 7px oklch(0.66 0.24 26 / 74%));
+  opacity: 0.92;
+  stroke-width: 0.42;
+}
+
+.medicine-risk-link.is-scripted {
+  stroke-dasharray: 0.06 0.035;
+}
+
+.medicine-risk-graph.is-pulsing .medicine-risk-link.is-active {
+  animation: risk-path-pulse 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.medicine-risk-node {
+  position: absolute;
+  z-index: 8;
+  display: grid;
+  width: 11.25rem;
+  min-height: 4.5rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.26rem 0.58rem;
+  align-items: start;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, oklch(0.95 0.02 190 / 4%), transparent 88%), oklch(0.15 0.02 205 / 88%);
+  padding: 0.66rem;
+  color: var(--sanitas-text);
+  text-align: left;
+  transform: translate(-50%, -50%);
+  transition:
+    top 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    left 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease,
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+  box-shadow:
+    0 18px 48px oklch(0.04 0.012 230 / 52%),
+    inset 0 1px 0 oklch(0.95 0.02 190 / 5%);
+}
+
+.medicine-risk-node:hover,
+.medicine-risk-node.is-selected {
+  z-index: 12;
+  border-color: oklch(0.82 0.05 190 / 62%);
+  transform: translate(-50%, -50%) scale(1.035);
+}
+
+.medicine-risk-node.is-dimmed {
+  opacity: 0.18;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(0.82);
+}
+
+.medicine-risk-node.is-active-path {
+  opacity: 1;
+}
+
+.medicine-risk-node .node-icon {
+  display: grid;
+  width: 1.68rem;
+  height: 1.68rem;
+  grid-row: span 3;
+  place-items: center;
+  border-radius: 7px;
+  background: oklch(0.21 0.023 205);
+  color: var(--sanitas-muted);
+}
+
+.medicine-risk-node strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.84rem;
+  font-weight: 620;
+  line-height: 1.18;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medicine-risk-node small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--sanitas-muted);
+  font-size: 0.69rem;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.medicine-risk-node em {
+  width: max-content;
+  border-radius: 999px;
+  background: oklch(0.19 0.04 205);
+  padding: 0.2rem 0.38rem;
+  color: var(--sanitas-muted);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.medicine-risk-node.risk-critical {
+  border-color: oklch(0.66 0.24 26 / 72%);
+}
+
+.medicine-risk-node.risk-critical .node-icon,
+.medicine-risk-node.risk-critical em {
+  color: oklch(0.79 0.17 32);
+}
+
+.medicine-risk-node.risk-elevated {
+  border-color: oklch(0.75 0.16 62 / 48%);
+}
+
+.medicine-risk-node.risk-watch {
+  border-color: oklch(0.72 0.12 174 / 38%);
+}
+
+.medicine-risk-node.risk-stable {
+  opacity: 0.76;
+}
+
+.medicine-risk-node.is-critical-medicine {
+  width: 12.75rem;
+  min-height: 5.1rem;
+  background:
+    radial-gradient(circle at 20% 22%, oklch(0.66 0.24 26 / 30%), transparent 5.8rem),
+    oklch(0.16 0.026 205 / 92%);
+  box-shadow:
+    0 0 0 1px oklch(0.66 0.24 26 / 18%),
+    0 0 48px oklch(0.66 0.24 26 / 34%),
+    0 22px 68px oklch(0.04 0.012 230 / 58%);
+}
+
+.medicine-risk-node.is-critical-medicine::after {
+  position: absolute;
+  inset: -0.48rem;
+  border: 1px solid oklch(0.66 0.24 26 / 38%);
+  border-radius: 12px;
+  content: "";
+  animation: critical-glow 1800ms ease-out infinite;
+  pointer-events: none;
+}
+
+.medicine-risk-node.node-medicine:not(.is-critical-medicine) {
+  width: 10.6rem;
+}
+
+.medicine-risk-node.node-source {
+  width: 7.65rem;
+  min-height: 3.2rem;
+  border-radius: 999px;
+  padding: 0.5rem 0.62rem;
+}
+
+.medicine-risk-node.node-source small {
+  display: none;
+}
+
+.medicine-risk-node.node-source .node-icon {
+  width: 1.42rem;
+  height: 1.42rem;
+  border-radius: 999px;
+}
+
+.medicine-risk-node.is-new-evidence {
+  animation: evidence-arrive 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.medicine-risk-graph.is-focused .medicine-risk-node:not(.node-source) {
+  width: 11.9rem;
+}
+
+.graph-hover-preview {
+  position: absolute;
+  z-index: 30;
+  width: min(17rem, 24vw);
+  border: 1px solid var(--sanitas-border);
+  border-radius: 8px;
+  background: oklch(0.15 0.022 205 / 96%);
+  padding: 0.72rem;
+  box-shadow: 0 20px 60px oklch(0.04 0.012 230 / 62%);
+  pointer-events: none;
+}
+
+.graph-hover-preview span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--sanitas-faint);
+  font-size: 0.66rem;
+  font-weight: 720;
+  text-transform: uppercase;
+}
+
+.graph-hover-preview strong {
+  display: block;
+  font-size: 0.86rem;
+}
+
+.graph-hover-preview p {
+  margin: 0.3rem 0 0;
+  color: var(--sanitas-muted);
+  font-size: 0.76rem;
+  line-height: 1.38;
+}
+
+.risk-side-panel {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 25;
+  display: flex;
+  width: 23.25rem;
+  flex-direction: column;
+  gap: 0.85rem;
+  overflow: auto;
+  border: 1px solid var(--sanitas-border);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, oklch(0.96 0.02 190 / 5%), transparent 12rem), var(--sanitas-panel);
+  padding: 0.85rem;
+  box-shadow:
+    0 24px 90px oklch(0.04 0.012 230 / 58%),
+    inset 0 1px 0 oklch(0.95 0.02 190 / 5%);
+  backdrop-filter: blur(18px);
+}
+
+.risk-panel-head,
+.risk-profile-title,
+.risk-score-row,
+.evidence-list article,
+.timeline-item,
+.agent-input {
+  display: flex;
+  align-items: center;
+}
+
+.risk-panel-head {
+  justify-content: space-between;
+  color: var(--sanitas-faint);
+  font-size: 0.74rem;
+}
+
+.risk-panel-head button,
+.prompt-list button,
+.open-source-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.12 0.016 205 / 76%);
+  color: var(--sanitas-text);
+  font-size: 0.78rem;
+}
+
+.risk-panel-head button {
+  min-height: 2rem;
+  padding: 0 0.58rem;
+}
+
+.risk-profile-block,
+.risk-panel-section {
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 10px;
+  background: oklch(0.13 0.018 205 / 68%);
+  padding: 0.9rem;
+}
+
+.risk-profile-title {
+  gap: 0.68rem;
+}
+
+.risk-dot {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--sanitas-stable);
+}
+
+.risk-dot.risk-critical {
+  background: var(--sanitas-critical);
+  box-shadow: 0 0 24px oklch(0.66 0.24 26 / 66%);
+}
+
+.risk-dot.risk-elevated {
+  background: var(--sanitas-elevated);
+}
+
+.risk-dot.risk-watch {
+  background: var(--sanitas-watch);
+}
+
+.risk-profile-title p,
+.risk-panel-section h2,
+.risk-score-row span {
+  margin: 0;
+  color: var(--sanitas-faint);
+  font-size: 0.68rem;
+  font-weight: 740;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.risk-profile-title h1 {
+  margin: 0.12rem 0 0;
+  font-size: 1.18rem;
+  font-weight: 650;
+  line-height: 1.16;
+}
+
+.risk-score-row {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr 0.72fr;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.risk-score-row div {
+  min-width: 0;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.1 0.015 205 / 58%);
+  padding: 0.58rem;
+}
+
+.risk-score-row strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.2rem;
+  color: var(--sanitas-text);
+  font-size: 0.95rem;
+  font-weight: 660;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-panel-copy,
+.risk-panel-section p,
+.recommendation-box p {
+  margin: 0;
+  color: var(--sanitas-muted);
+  font-size: 0.81rem;
+  line-height: 1.48;
+}
+
+.risk-panel-copy {
+  margin-top: 0.85rem;
+}
+
+.risk-panel-section {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.recommendation-box {
+  border: 1px solid oklch(0.66 0.24 26 / 34%);
+  border-radius: 8px;
+  background: oklch(0.22 0.07 27 / 32%);
+  padding: 0.72rem;
+}
+
+.recommendation-box strong {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: oklch(0.83 0.13 42);
+  font-size: 0.86rem;
+}
+
+.evidence-list {
+  display: grid;
+  gap: 0.46rem;
+}
+
+.evidence-list article {
+  gap: 0.55rem;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.1 0.015 205 / 46%);
+  padding: 0.58rem;
+}
+
+.evidence-list svg {
+  flex: 0 0 auto;
+  color: var(--sanitas-blue);
+}
+
+.evidence-list strong,
+.evidence-list span {
+  display: block;
+}
+
+.evidence-list strong {
+  font-size: 0.78rem;
+}
+
+.evidence-list span {
+  margin-top: 0.12rem;
+  color: var(--sanitas-faint);
+  font-size: 0.7rem;
+}
+
+.open-source-action {
+  width: max-content;
+  min-height: 2rem;
+  padding: 0 0.62rem;
+}
+
+.fact-list {
+  display: grid;
+  gap: 0.42rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact-list li {
+  position: relative;
+  padding-left: 1rem;
+  color: var(--sanitas-muted);
+  font-size: 0.79rem;
+  line-height: 1.35;
+}
+
+.fact-list li::before {
+  position: absolute;
+  top: 0.47rem;
+  left: 0;
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 999px;
+  background: var(--sanitas-watch);
+  content: "";
+}
+
+.prompt-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.44rem;
+}
+
+.prompt-list button {
+  min-height: 2rem;
+  padding: 0 0.56rem;
+}
+
+.prompt-list button:hover,
+.open-source-action:hover,
+.risk-panel-head button:hover {
+  border-color: oklch(0.74 0.05 196 / 52%);
+  background: oklch(0.2 0.026 205 / 84%);
+}
+
+.agent-input {
+  min-height: 2.35rem;
+  gap: 0.52rem;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.1 0.015 205 / 48%);
+  padding: 0 0.62rem;
+  color: var(--sanitas-faint);
+  font-size: 0.76rem;
+}
+
+.timeline-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.timeline-item {
+  gap: 0.52rem;
+}
+
+.timeline-item span {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 999px;
+  color: var(--sanitas-watch);
+}
+
+.timeline-item p {
+  font-size: 0.76rem;
+}
+
+.timeline-item.is-running span {
+  color: var(--sanitas-elevated);
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes critical-glow {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes evidence-arrive {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.42);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes risk-path-pulse {
+  0%,
+  100% {
+    stroke-width: 0.42;
+  }
+
+  45% {
+    stroke-width: 0.72;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1180px) {
+  .medicine-graph-nav {
+    right: 1rem;
+  }
+
+  .medicine-graph-stage {
+    inset: 5.75rem 0.75rem 20.5rem;
+  }
+
+  .risk-side-panel {
+    top: auto;
+    left: 0.75rem;
+    width: auto;
+    max-height: 19rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .medicine-graph-screen {
+    min-height: 100vh;
+    height: auto;
+    overflow: auto;
+  }
+
+  .medicine-graph-nav {
+    position: sticky;
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    grid-template-columns: auto 1fr auto;
+    margin: 0.5rem;
+  }
+
+  .medicine-graph-brand strong,
+  .medicine-graph-risk-pill,
+  .medicine-graph-nav-actions button:not(.medicine-graph-alert, .medicine-graph-icon) {
+    display: none;
+  }
+
+  .medicine-graph-stage {
+    position: relative;
+    inset: auto;
+    height: 33rem;
+    margin: 0.5rem;
+  }
+
+  .medicine-risk-node {
+    width: 8.6rem;
+    min-height: 3.8rem;
+    padding: 0.5rem;
+  }
+
+  .medicine-risk-node small,
+  .graph-status-strip span:nth-child(3) {
+    display: none;
+  }
+
+  .medicine-risk-node.is-critical-medicine {
+    width: 9.4rem;
+  }
+
+  .medicine-risk-node.node-source {
+    width: 5.9rem;
+  }
+
+  .graph-hover-preview {
+    display: none;
+  }
+
+  .risk-side-panel {
+    position: relative;
+    inset: auto;
+    width: auto;
+    max-height: none;
+    margin: 0.5rem;
+  }
+}

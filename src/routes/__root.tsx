@@ -14,12 +14,12 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Sunstead - Clean web context for AI agents",
+        title: "Sanitas - Medicine supply risk intelligence",
       },
       {
         name: "description",
         content:
-          "A Firecrawl-inspired landing page and component system for clean web context workflows.",
+          "Medicine supply risk intelligence for detecting availability threats before they reach patients.",
       },
     ],
     links: [
