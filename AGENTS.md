@@ -31,3 +31,20 @@ If `vp check` fails because of an unrelated pre-existing or untracked file, do
 not format or modify that file unless the task asks for it. Format/check the
 files touched for the task, run `vp lint`, `vp test`, and `vp build` as
 appropriate, and report the unrelated blocker clearly in the handoff.
+
+## Agent skills
+
+Project-local skills live in `.agents/skills/`. Prefer those when invoking the
+workflow skills listed below.
+
+### Issue tracker
+
+Issues are tracked in Linear workspace `Sunstead Goblins`, team `SUN`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Linear uses the five canonical triage labels for agent workflow. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This repo uses a single-context domain docs layout. See `docs/agents/domain.md`.
