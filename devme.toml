@@ -1,0 +1,39 @@
+schema_version = 1
+
+[env.DATABASE_URL]
+required = true
+default = "file:./local.db"
+help = "SQLite/libSQL connection string used by Drizzle and the app."
+
+[env.BETTER_AUTH_SECRET]
+required = true
+generate = "openssl rand -hex 32"
+help = "Local Better Auth secret. devme writes this to .env.local on first run."
+
+[env.BETTER_AUTH_URL]
+required = true
+default = "http://localhost:3000"
+help = "Public app URL used by Better Auth in local development."
+
+[step.bun]
+check = "command -v bun"
+provision = "curl -fsSL https://bun.sh/install | bash"
+trust = "manual"
+
+[step.deps]
+check = "test -d node_modules"
+provision = "bun install"
+trust = "auto"
+depends_on = ["bun"]
+
+[step.db]
+check = "test -f drizzle/meta/_journal.json"
+provision = "bun run db:generate"
+trust = "auto"
+depends_on = ["deps"]
+
+[service.web]
+cmd = "bun run dev"
+port = { base = 3000, slot_offset = 10 }
+url = "http://{host}:{port}"
+depends_on = ["deps"]
