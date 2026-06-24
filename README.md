@@ -2,10 +2,12 @@
 
 ```bash
 curl -fsSL https://devme.sh/install | sh
+devme skill install
 devme
 ```
 
-DevMe installs the tools, starts the app, assigns ports, and shows logs.
+DevMe installs the tools, installs the agent skill, starts the app, assigns
+ports, and shows logs.
 
 ## Services
 
