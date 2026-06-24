@@ -3,28 +3,28 @@ schema_version = 1
 [step.bun]
 check = "command -v bun"
 provision = "curl -fsSL https://bun.sh/install | bash"
-trust = "manual"
+trust = "auto"
 
 [step.vp]
-check = "command -v vp"
+check = "command -v vp || test -x \"$HOME/.vite-plus/bin/vp\""
 provision = "curl -fsSL https://vite.plus | bash && mkdir -p \"$HOME/.local/bin\" && ln -sfn \"$HOME/.vite-plus/bin/vp\" \"$HOME/.local/bin/vp\""
 trust = "auto"
 depends_on = ["bun"]
 
 [step.deps]
 check = "test -d node_modules"
-provision = "vp install"
+provision = "PATH=\"$HOME/.vite-plus/bin:$HOME/.local/bin:$PATH\" vp install"
 trust = "auto"
 depends_on = ["bun", "vp"]
 
 [service.web]
-cmd = "vp dev --host 0.0.0.0 --port {port}"
+cmd = "PATH=\"$HOME/.vite-plus/bin:$HOME/.local/bin:$PATH\" vp dev --host 0.0.0.0 --port {port}"
 port = { base = 3000, slot_offset = 10 }
 url = "http://{host}:{port}"
 depends_on = ["deps"]
 
 [service.storybook]
-cmd = "vp exec storybook dev --host 0.0.0.0 --port {port}"
+cmd = "PATH=\"$HOME/.vite-plus/bin:$HOME/.local/bin:$PATH\" vp exec storybook dev --host 0.0.0.0 --port {port}"
 port = { base = 6006, slot_offset = 10 }
 url = "http://{host}:{port}"
 depends_on = ["deps"]
