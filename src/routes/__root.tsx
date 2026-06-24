@@ -1,6 +1,5 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -15,7 +14,12 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Sunstead Plant Care Console",
+        title: "Sunstead - Clean web context for AI agents",
+      },
+      {
+        name: "description",
+        content:
+          "A Firecrawl-inspired landing page and component system for clean web context workflows.",
       },
     ],
     links: [
@@ -36,7 +40,7 @@ function RootComponent() {
   );
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -44,17 +48,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
         <Scripts />
       </body>
     </html>

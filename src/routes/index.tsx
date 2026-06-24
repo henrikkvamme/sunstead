@@ -1,350 +1,443 @@
-import { Field } from "@base-ui-components/react/field";
-import { Input } from "@base-ui-components/react/input";
-import { Switch } from "@base-ui-components/react/switch";
-import { Tabs } from "@base-ui-components/react/tabs";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Droplets, Plus, RefreshCw, Sprout, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  ArrowRight,
+  Braces,
+  Check,
+  ChevronDown,
+  Copy,
+  FileJson,
+  Github,
+  MousePointer2,
+  Search,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 
-import { createPlant, deletePlant, flagPlantForWater, listPlants, waterPlant } from "#/lib/plants";
-import { lightLevels, rooms } from "#/lib/plants.shared";
+import {
+  BrowserFrame,
+  Button,
+  CodePanel,
+  FAQItem,
+  FeatureCard,
+  LogoMark,
+  MiniMetric,
+  SectionHeader,
+} from "#/ui";
 
 export const Route = createFileRoute("/")({
-  loader: async () => listPlants(),
   component: Home,
 });
 
-type Plant = Awaited<ReturnType<typeof listPlants>>[number];
-type Filter = "all" | "needs-water";
+const navItems = ["Products", "Resources", "Pricing", "Docs", "Blog", "Playground"];
+
+const codeLines = [
+  "[",
+  "  {",
+  '    "url": "https://source.example/report",',
+  '    "markdown": "# Market signal\\nClean content...",',
+  '    "json": { "title": "Agent-ready context" },',
+  '    "screenshot": "capture-2026.png"',
+  "  }",
+  "]",
+];
+
+const products = [
+  {
+    icon: Search,
+    title: "Search",
+    text: "Find high-signal sources and return the full context behind every result.",
+  },
+  {
+    icon: FileJson,
+    title: "Scrape",
+    text: "Turn any page into clean markdown, JSON, links, screenshots, and metadata.",
+  },
+  {
+    icon: MousePointer2,
+    title: "Interact",
+    text: "Let agents click, wait, navigate, and extract from dynamic web apps.",
+  },
+];
+
+const agentSteps = [
+  "Connect the SDK",
+  "Choose a source",
+  "Return structured context",
+  "Ship the workflow",
+];
+
+const hardStuff = [
+  "JavaScript rendering",
+  "Proxy rotation",
+  "Rate limits",
+  "Schema extraction",
+  "Change detection",
+  "Queued batches",
+];
+
+const solutions = [
+  ["Sales intelligence", "Find accounts", "Enrich profiles", "Monitor signals"],
+  ["Research agents", "Collect papers", "Compare sources", "Summarize evidence"],
+  ["Operations", "Track vendors", "Read portals", "Trigger workflows"],
+  ["Knowledge bases", "Crawl docs", "Normalize markdown", "Sync updates"],
+];
+
+const faqs = [
+  {
+    question: "What can I build with this interface?",
+    answer:
+      "Agent research tools, live web monitors, knowledge-base ingestion, competitive intelligence, and structured extraction flows.",
+  },
+  {
+    question: "Does the layout work on mobile?",
+    answer:
+      "Yes. The desktop grids collapse to focused single-column sections while preserving the same controls, spacing rhythm, and visual language.",
+  },
+  {
+    question: "Is this an exact Firecrawl copy?",
+    answer:
+      "It is a close visual study of the layout system, spacing, component shapes, and orange-accent identity, with original naming and copy.",
+  },
+  {
+    question: "Can this become a full component library?",
+    answer:
+      "Yes. The page is built from reusable primitives so we can keep adding Storybook stories and interaction states without rewriting the page.",
+  },
+];
 
 function Home() {
-  const plants = Route.useLoaderData();
-  const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("all");
-  const [status, setStatus] = useState("Loaded plants from SQLite through a server function.");
-  const [isPending, setIsPending] = useState(false);
-
-  const visiblePlants = useMemo(() => {
-    if (filter === "needs-water") {
-      return plants.filter((plant) => plant.needsWater);
-    }
-
-    return plants;
-  }, [filter, plants]);
-
-  const needsWaterCount = plants.filter((plant) => plant.needsWater).length;
-
-  async function refreshPlants(message = "Refreshed the route loader.") {
-    await router.invalidate();
-    setStatus(message);
-  }
-
-  function runRequest(request: () => Promise<void>) {
-    setIsPending(true);
-    void request()
-      .catch((error: unknown) => {
-        setStatus(error instanceof Error ? error.message : "The request failed.");
-      })
-      .finally(() => {
-        setIsPending(false);
-      });
-  }
-
   return (
-    <main className="min-h-screen bg-[canvas] text-slate-950">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:py-10">
-        <header className="grid gap-5 border-b border-slate-200 pb-7 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div className="max-w-3xl">
-            <p className="eyebrow">TanStack Start + Drizzle + Base UI</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-normal text-slate-950 sm:text-5xl">
-              Sunstead plant care console
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              A working example of loader reads, server-function mutations, SQLite/libSQL
-              persistence, and unstyled Base UI primitives with app-level styling.
-            </p>
+    <main className="site-shell">
+      <div className="announcement">
+        <span>Introducing Sunstead Research Index, specialized context for agent workflows.</span>
+        <a href="#solutions">Try it now -&gt;</a>
+      </div>
+
+      <header className="site-header">
+        <nav className="nav-container" aria-label="Primary navigation">
+          <LogoMark />
+          <div className="nav-links">
+            {navItems.map((item) => (
+              <a href={`#${item.toLowerCase()}`} key={item}>
+                {item}
+                {item === "Products" || item === "Resources" ? (
+                  <ChevronDown aria-hidden size={13} />
+                ) : null}
+              </a>
+            ))}
           </div>
-          <button
-            className="button secondary w-fit"
-            disabled={isPending}
-            type="button"
-            onClick={() =>
-              runRequest(async () => {
-                await refreshPlants("Requested a fresh plant list from the database.");
-              })
-            }
-          >
-            <RefreshCw aria-hidden size={18} />
-            Refresh
-          </button>
-        </header>
+          <div className="nav-actions">
+            <a className="github-stat" href="https://github.com" aria-label="GitHub stars">
+              <Github aria-hidden size={17} />
+              138.5K
+            </a>
+            <Button href="#signup" size="sm">
+              Sign up
+            </Button>
+          </div>
+        </nav>
+      </header>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <section className="space-y-5">
-            <Tabs.Root value={filter} onValueChange={(value) => setFilter(value as Filter)}>
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <Tabs.List className="tabs-list" aria-label="Plant list filters">
-                  <Tabs.Tab className="tab" value="all">
-                    All plants
-                  </Tabs.Tab>
-                  <Tabs.Tab className="tab" value="needs-water">
-                    Needs water
-                    <span className="tab-count">{needsWaterCount}</span>
-                  </Tabs.Tab>
-                  <Tabs.Indicator className="tab-indicator" />
-                </Tabs.List>
-                <p className="request-status" aria-live="polite">
-                  {isPending ? "Request in flight..." : status}
-                </p>
+      <section className="hero-section">
+        <div className="grid-backdrop" aria-hidden>
+          <span className="grid-label grid-label-left">[ 200 OK ]</span>
+          <span className="grid-label grid-label-right">[ SCRAPE ]</span>
+          <span className="grid-label grid-label-bottom-left">[ .JSON ]</span>
+          <span className="grid-label grid-label-bottom-right">[ .MD ]</span>
+          <span className="spark spark-one" />
+          <span className="spark spark-two" />
+        </div>
+
+        <div className="hero-copy">
+          <a className="promo-pill" href="#pricing">
+            2 Months Free - Annually
+            <span>
+              <ArrowRight aria-hidden size={14} />
+            </span>
+          </a>
+          <h1>
+            Power every agent with
+            <br />
+            <span>clean web context</span>
+          </h1>
+          <p>
+            The complete toolkit to search, scrape, and interact with the web at scale.{" "}
+            <a href="#open-source">It is also open source.</a>
+          </p>
+          <div className="hero-actions">
+            <Button href="#signup" size="lg" variant="primary">
+              Start for free
+            </Button>
+            <Button href="#agents" icon={<Copy aria-hidden size={17} />} size="lg">
+              Setup for agents
+            </Button>
+          </div>
+        </div>
+
+        <BrowserFrame className="hero-browser">
+          <div className="scrape-demo">
+            <div className="scrape-form">
+              <div className="fake-row">
+                <div className="fake-avatar" />
+                <span className="fake-input fake-input-short" />
+                <span className="fake-tag">A--0</span>
               </div>
-
-              <Tabs.Panel className="mt-5" value="all">
-                <PlantList
-                  isPending={isPending}
-                  plants={visiblePlants}
-                  runRequest={runRequest}
-                  refreshPlants={refreshPlants}
-                />
-              </Tabs.Panel>
-              <Tabs.Panel className="mt-5" value="needs-water">
-                <PlantList
-                  emptyMessage="No plants need water right now."
-                  isPending={isPending}
-                  plants={visiblePlants}
-                  runRequest={runRequest}
-                  refreshPlants={refreshPlants}
-                />
-              </Tabs.Panel>
-            </Tabs.Root>
-          </section>
-
-          <aside className="space-y-4">
-            <CreatePlantForm
-              isPending={isPending}
-              refreshPlants={refreshPlants}
-              runRequest={runRequest}
-            />
-            <div className="info-panel">
-              <h2>Request map</h2>
-              <dl>
-                <div>
-                  <dt>GET</dt>
-                  <dd>
-                    <code>listPlants</code> loads and serializes rows for the route loader.
-                  </dd>
-                </div>
-                <div>
-                  <dt>POST</dt>
-                  <dd>
-                    <code>createPlant</code>, <code>waterPlant</code>, and <code>deletePlant</code>{" "}
-                    mutate SQLite through Drizzle.
-                  </dd>
-                </div>
-              </dl>
+              <div className="fake-row fake-row-wrap">
+                <span className="fake-input" />
+                <span className="fake-input fake-input-medium" />
+              </div>
+              <span className="fake-input fake-input-wide" />
+              <div className="fake-toolbar-row">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <span className="fake-line" />
+              <span className="fake-line fake-line-short" />
+              <span className="fake-button" />
             </div>
-          </aside>
+            <div className="result-pane">
+              <div className="result-toolbar">
+                <span />
+                <span />
+                <span />
+                <strong>[ .JSON ]</strong>
+              </div>
+              <CodePanel lines={codeLines} />
+              <div className="scraping-pill">
+                <Sparkles aria-hidden size={14} />
+                Scraping ...
+              </div>
+            </div>
+          </div>
+        </BrowserFrame>
+      </section>
+
+      <section className="logo-strip" aria-label="Customer logos">
+        {["Mercury", "Raycast", "Cal.com", "Cursor", "Zapier"].map((name) => (
+          <span key={name}>{name}</span>
+        ))}
+      </section>
+
+      <section className="section-block" id="products">
+        <SectionHeader
+          eyebrow="Developer first"
+          title={<TitleAccent before="Start" accent="scraping" after="today" />}
+        >
+          Infrastructure that helps AI find, read, and act on the live web.
+        </SectionHeader>
+
+        <div className="product-grid">
+          {products.map((product) => {
+            const Icon = product.icon;
+
+            return (
+              <FeatureCard key={product.title} title={product.title}>
+                <Icon aria-hidden size={18} />
+                {product.text}
+              </FeatureCard>
+            );
+          })}
+        </div>
+
+        <div className="code-workbench">
+          <div className="workbench-tabs">
+            <button type="button">Search</button>
+            <button className="active" type="button">
+              Scrape
+            </button>
+            <button type="button">Interact</button>
+          </div>
+          <CodePanel
+            lines={[
+              "import { Sunstead } from '@sunstead/sdk';",
+              "const app = new Sunstead({ apiKey });",
+              "",
+              "const page = await app.scrape('https://example.com');",
+              "return page.markdown;",
+            ]}
+          />
+          <div className="output-card">
+            <strong>Output</strong>
+            <p>Clean markdown, screenshots, links, and typed fields in one response.</p>
+          </div>
         </div>
       </section>
+
+      <section className="section-block" id="agents">
+        <SectionHeader
+          eyebrow="Agents"
+          title={<TitleAccent before="Easily connect with your" accent="AI agents" />}
+        >
+          Feed browser-grade context into the tools your agents already use.
+        </SectionHeader>
+        <div className="agent-grid">
+          {agentSteps.map((step, index) => (
+            <article className="agent-card" key={step}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{step}</h3>
+              <p>
+                {index === 0
+                  ? "Install the SDK or call the API directly."
+                  : "Keep the workflow deterministic, inspectable, and easy to retry."}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-block" id="open-source">
+        <SectionHeader
+          eyebrow="Open source"
+          title={
+            <TitleAccent
+              before="Fast, reliable, and token-efficient. And it is"
+              accent="open source"
+            />
+          }
+        >
+          Designed for teams that need web context without brittle scraping pipelines.
+        </SectionHeader>
+        <div className="opensource-grid">
+          <FeatureCard title="Built for production">
+            <Zap aria-hidden size={18} />
+            Queues, retries, observability, and clean outputs are treated as core product surfaces.
+          </FeatureCard>
+          <div className="metrics-panel">
+            <MiniMetric label="Requests served" value="2.8B" />
+            <MiniMetric label="Median parse time" value="1.2s" />
+            <MiniMetric label="Schema accuracy" value="99.2%" />
+          </div>
+          <FeatureCard title="Agent-native outputs">
+            <Braces aria-hidden size={18} />
+            Return markdown, JSON, screenshots, links, actions, and citations in the same flow.
+          </FeatureCard>
+        </div>
+      </section>
+
+      <section className="section-block">
+        <SectionHeader
+          eyebrow="Scale"
+          title={<TitleAccent before="We handle the" accent="hard stuff" />}
+        >
+          Browser automation and extraction details disappear behind one clean interface.
+        </SectionHeader>
+        <div className="hard-grid">
+          {hardStuff.map((item) => (
+            <div className="hard-card" key={item}>
+              <Check aria-hidden size={16} />
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flow-diagram" aria-label="Processing pipeline">
+          <span>URL</span>
+          <ArrowRight aria-hidden />
+          <span className="hot">Sunstead</span>
+          <ArrowRight aria-hidden />
+          <span>Markdown</span>
+          <ArrowRight aria-hidden />
+          <span>Agent</span>
+        </div>
+      </section>
+
+      <section className="section-block" id="solutions">
+        <SectionHeader
+          eyebrow="Solutions"
+          title={<TitleAccent before="Transform web data into" accent="AI-powered solutions" />}
+        >
+          A simple product surface for the workflows teams keep rebuilding.
+        </SectionHeader>
+        <div className="solutions-layout">
+          <aside>
+            {solutions.map(([name], index) => (
+              <button className={index === 0 ? "active" : ""} key={name} type="button">
+                {name}
+              </button>
+            ))}
+          </aside>
+          <div className="solution-table">
+            {solutions.map((row) => (
+              <div className="solution-row" key={row[0]}>
+                {row.map((cell, index) => (
+                  <span key={cell} className={index === 0 ? "solution-name" : ""}>
+                    {cell}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-block testimonials">
+        <SectionHeader
+          eyebrow="Wall of love"
+          title={<TitleAccent before="People love building with" accent="Sunstead" />}
+        >
+          Small primitives, sturdy outputs, and fewer fragile scraping scripts.
+        </SectionHeader>
+        <div className="testimonial-grid">
+          {[
+            "The first API we reach for when an agent needs reliable live context.",
+            "It turned a week of extraction work into a single afternoon.",
+            "The output is clean enough to feed directly into evals and research flows.",
+          ].map((quote, index) => (
+            <blockquote key={quote}>
+              <p>{quote}</p>
+              <footer>Builder {index + 1}</footer>
+            </blockquote>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-block faq-section" id="resources">
+        <SectionHeader
+          eyebrow="FAQ"
+          title={<TitleAccent before="Frequently asked" accent="questions" />}
+        />
+        <div className="faq-list">
+          {faqs.map((item) => (
+            <FAQItem answer={item.answer} key={item.question} question={item.question} />
+          ))}
+        </div>
+      </section>
+
+      <footer className="site-footer">
+        <div>
+          <LogoMark />
+          <p>Clean context for AI agents and product teams.</p>
+        </div>
+        <div className="footer-columns">
+          {["Products", "Resources", "Company", "Legal"].map((heading) => (
+            <div key={heading}>
+              <h3>{heading}</h3>
+              <a href="/">Overview</a>
+              <a href="/">Docs</a>
+              <a href="/">Changelog</a>
+              <a href="/">Contact</a>
+            </div>
+          ))}
+        </div>
+      </footer>
     </main>
   );
 }
 
-function PlantList({
-  emptyMessage = "Add a plant to start tracking care.",
-  isPending,
-  plants,
-  refreshPlants,
-  runRequest,
+function TitleAccent({
+  accent,
+  after,
+  before,
 }: {
-  emptyMessage?: string;
-  isPending: boolean;
-  plants: Array<Plant>;
-  refreshPlants: (message?: string) => Promise<void>;
-  runRequest: (request: () => Promise<void>) => void;
+  accent: string;
+  after?: string;
+  before: string;
 }) {
-  if (plants.length === 0) {
-    return (
-      <div className="empty-state">
-        <Sprout aria-hidden size={22} />
-        <p>{emptyMessage}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="plant-grid">
-      {plants.map((plant) => (
-        <article className="plant-card" key={plant.id}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="room-label">{plant.room}</p>
-              <h2>{plant.name}</h2>
-            </div>
-            <span className={plant.needsWater ? "badge warning" : "badge"}>{plant.light}</span>
-          </div>
-
-          <p className="plant-notes">{plant.notes || "No notes yet."}</p>
-
-          <div className="plant-meta">
-            <span>Updated {formatDate(plant.updatedAt)}</span>
-            <span>
-              {plant.lastWateredAt ? `Watered ${formatDate(plant.lastWateredAt)}` : "Never watered"}
-            </span>
-          </div>
-
-          <div className="card-actions">
-            <label className="switch-row">
-              <Switch.Root
-                checked={plant.needsWater}
-                className="switch"
-                disabled={isPending}
-                onCheckedChange={(checked) =>
-                  runRequest(async () => {
-                    if (checked) {
-                      await flagPlantForWater({ data: { id: plant.id } });
-                      await refreshPlants(`Flagged ${plant.name} for watering.`);
-                      return;
-                    }
-
-                    await waterPlant({ data: { id: plant.id } });
-                    await refreshPlants(`Marked ${plant.name} as watered.`);
-                  })
-                }
-              >
-                <Switch.Thumb className="switch-thumb" />
-              </Switch.Root>
-              <Droplets aria-hidden size={16} />
-              <span>{plant.needsWater ? "Needs water" : "Watered"}</span>
-            </label>
-
-            <button
-              className="icon-button"
-              disabled={isPending}
-              title={`Delete ${plant.name}`}
-              type="button"
-              onClick={() =>
-                runRequest(async () => {
-                  await deletePlant({ data: { id: plant.id } });
-                  await refreshPlants(`Deleted ${plant.name}.`);
-                })
-              }
-            >
-              <Trash2 aria-hidden size={17} />
-              <span className="sr-only">Delete {plant.name}</span>
-            </button>
-          </div>
-        </article>
-      ))}
-    </div>
+    <>
+      {before} <span>{accent}</span>
+      {after ? ` ${after}` : null}
+    </>
   );
-}
-
-function CreatePlantForm({
-  isPending,
-  refreshPlants,
-  runRequest,
-}: {
-  isPending: boolean;
-  refreshPlants: (message?: string) => Promise<void>;
-  runRequest: (request: () => Promise<void>) => void;
-}) {
-  const [needsWater, setNeedsWater] = useState(false);
-
-  return (
-    <form
-      className="create-panel"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const form = event.currentTarget;
-        const formData = new FormData(form);
-        const name = getFormString(formData, "name");
-        const room = getFormString(formData, "room");
-        const light = getFormString(formData, "light");
-        const notes = getFormString(formData, "notes");
-
-        runRequest(async () => {
-          await createPlant({
-            data: {
-              name,
-              room: room as (typeof rooms)[number],
-              light: light as (typeof lightLevels)[number],
-              notes,
-              needsWater,
-            },
-          });
-          form.reset();
-          setNeedsWater(false);
-          await refreshPlants(`Created ${name}.`);
-        });
-      }}
-    >
-      <div>
-        <p className="eyebrow">POST example</p>
-        <h2>Add a plant</h2>
-      </div>
-
-      <Field.Root className="field" name="name">
-        <Field.Label className="label">Name</Field.Label>
-        <Input className="input" minLength={2} placeholder="String of hearts" required />
-      </Field.Root>
-
-      <Field.Root className="field" name="room">
-        <Field.Label className="label">Room</Field.Label>
-        <select className="input" defaultValue={rooms[0]} name="room" required>
-          {rooms.map((room) => (
-            <option key={room} value={room}>
-              {room}
-            </option>
-          ))}
-        </select>
-      </Field.Root>
-
-      <Field.Root className="field" name="light">
-        <Field.Label className="label">Light</Field.Label>
-        <select className="input" defaultValue={lightLevels[2]} name="light" required>
-          {lightLevels.map((light) => (
-            <option key={light} value={light}>
-              {light}
-            </option>
-          ))}
-        </select>
-      </Field.Root>
-
-      <Field.Root className="field" name="notes">
-        <Field.Label className="label">Notes</Field.Label>
-        <Input className="input" maxLength={240} placeholder="Care detail, location, cadence..." />
-      </Field.Root>
-
-      <label className="switch-row rounded-row">
-        <Switch.Root
-          checked={needsWater}
-          className="switch"
-          onCheckedChange={(checked) => setNeedsWater(checked)}
-        >
-          <Switch.Thumb className="switch-thumb" />
-        </Switch.Root>
-        <span>Needs water now</span>
-      </label>
-
-      <button className="button" disabled={isPending} type="submit">
-        <Plus aria-hidden size={18} />
-        Add plant
-      </button>
-    </form>
-  );
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function getFormString(formData: FormData, key: string) {
-  const value = formData.get(key);
-
-  return typeof value === "string" ? value : "";
 }
