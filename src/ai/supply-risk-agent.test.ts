@@ -104,13 +104,13 @@ describe("supply risk agent module", () => {
     expect(instructions).toContain("never provide clinical treatment advice");
   });
 
-  it("builds scripted Carboplatin demo operator instructions", () => {
+  it("builds scripted Cisplatin demo operator instructions", () => {
     const instructions = buildCarboplatinDemoAgentInstructions(
       new Date("2026-06-25T00:00:00.000Z"),
     );
 
     expect(instructions).toContain(
-      "Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint",
+      "Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint",
     );
     expect(instructions).toContain(
       "Report context prepared: evidence, risk path, and recommended action are ready.",
@@ -155,7 +155,7 @@ describe("supply risk agent module", () => {
     expect(prompt).toContain("actionable operator plan");
   });
 
-  it("builds a narrow managed-agent prompt for the Carboplatin demo path", () => {
+  it("builds a narrow managed-agent prompt for the Cisplatin demo path", () => {
     const prompt = buildCarboplatinManagedInvestigationPrompt({
       nodeId: "event-api-shortage-2026",
     });
@@ -239,7 +239,7 @@ describe("supply risk agent module", () => {
     );
   });
 
-  it("streams the Carboplatin demo with AI SDK tool and graph update chunks", async () => {
+  it("streams the Cisplatin demo with AI SDK tool and graph update chunks", async () => {
     const response = createCarboplatinDemoStreamResponse({
       timing: { reasoningDelayMs: 0, toolDelayMs: 0 },
     });

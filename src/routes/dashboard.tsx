@@ -305,7 +305,7 @@ function detailsForNode(node: GraphNode): NodeDetails[string] {
           ],
     whyItMatters:
       node.riskReason ??
-      `${node.label} contributes to the mapped supply-risk context for Carboplatin Injection.`,
+      `${node.label} contributes to the mapped supply-risk context for Cisplatin Injection.`,
   };
 }
 
@@ -317,6 +317,10 @@ function findSourceNodeForEvidence(source: NodeDetails[string]["sources"][number
 
     return nodeDetails[node.id]?.sources.some((candidate) => candidate.url === source.url);
   });
+}
+
+function sourceUrlForNode(nodeId: string) {
+  return nodeDetails[nodeId]?.sources[0]?.url;
 }
 
 type LayoutPoint = { x: number; y: number };
@@ -948,6 +952,15 @@ export function Dashboard() {
           onHoverNode={setHoveredNodeId}
           onExpandNode={setExpandedNodeId}
           onSelectNode={(node) => {
+            if (node.id === scriptedSourceId && addedEvidence) {
+              const sourceUrl = sourceUrlForNode(node.id);
+
+              if (sourceUrl) {
+                window.open(sourceUrl, "_blank", "noopener,noreferrer");
+                return;
+              }
+            }
+
             if (node.kind === "medicine" && node.id === selectedMedicineId) {
               focusMedicine();
               return;
@@ -1030,7 +1043,7 @@ function GraphNotifications({
       <div className="timeline-list graph-notification-list">
         <TimelineItem
           icon={<Activity aria-hidden size={14} />}
-          text="Risk path opened for Carboplatin Injection"
+          text="Risk path opened for Cisplatin Injection"
         />
         <TimelineItem
           icon={<RouteIcon aria-hidden size={14} />}
@@ -1546,7 +1559,7 @@ function RiskSidePanel({
         : node.id === "supplier-accord-intas"
           ? "This supplier path carries the strongest action signal."
           : node.kind === "source"
-            ? "Evidence supporting the mapped carboplatin risk path."
+            ? "Evidence supporting the mapped cisplatin risk path."
             : (node.riskReason ?? details.whyItMatters);
 
   if (viewMode === "investigating" || viewMode === "report-ready") {
@@ -2002,7 +2015,7 @@ function InvestigationTimeline({
       <div className="timeline-list">
         <TimelineItem
           icon={<Activity aria-hidden size={14} />}
-          text="Risk Path opened for Carboplatin Injection"
+          text="Risk Path opened for Cisplatin Injection"
         />
         <TimelineItem
           icon={<RouteIcon aria-hidden size={14} />}

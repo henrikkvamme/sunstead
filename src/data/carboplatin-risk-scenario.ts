@@ -58,7 +58,7 @@ export type SupplyRiskReportPreview = {
 };
 
 export const selectedMedicineId = "med-carboplatin";
-export const selectedMedicineSlug = "carboplatin-injection";
+export const selectedMedicineSlug = "cisplatin-injection";
 export const scriptedSourceId = "source-times-india-2026";
 export const investigationTargetId = "event-api-shortage-2026";
 
@@ -85,10 +85,10 @@ export const carboplatinReportPreview: SupplyRiskReportPreview = {
   evidenceSourceNodeIds: ["source-fda-carboplatin", "source-ashp-carboplatin", scriptedSourceId],
   generatedAtLabel: "Prepared from mapped evidence",
   headlineFinding:
-    "Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready carboplatin supply.",
+    "Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready cisplatin supply.",
   id: "report-carboplatin-demo",
   medicineId: selectedMedicineId,
-  pdfUrl: "/reports/carboplatin-supply-risk-brief.pdf",
+  pdfUrl: "/reports/cisplatin-supply-risk-brief.pdf",
   recommendedAction: {
     checklist: [
       "Check approved alternatives",
@@ -101,7 +101,7 @@ export const carboplatinReportPreview: SupplyRiskReportPreview = {
     title: "Prepare alternate supplier order",
   },
   status: "action-needed",
-  title: "Carboplatin Injection Supply Risk Brief",
+  title: "Cisplatin Injection Supply Risk Brief",
 };
 
 export const graphNodes: GraphNode[] = [
@@ -110,7 +110,7 @@ export const graphNodes: GraphNode[] = [
     detail: { x: 10, y: 50 },
     id: selectedMedicineId,
     kind: "medicine",
-    label: "Carboplatin Injection",
+    label: "Cisplatin Injection",
     metric: "87",
     overview: { x: 50, y: 50 },
     risk: "critical",
@@ -121,7 +121,7 @@ export const graphNodes: GraphNode[] = [
   {
     id: "med-cisplatin",
     kind: "medicine",
-    label: "Cisplatin Injection",
+    label: "Carboplatin Injection",
     metric: "72",
     overview: { x: 67, y: 38 },
     risk: "elevated",
@@ -296,7 +296,7 @@ export const graphNodes: GraphNode[] = [
     risk: "watch",
     riskReason: "Context supplier: discontinued presentations narrow fallback capacity.",
     riskScore: 44,
-    summary: "Some carboplatin presentations are discontinued.",
+    summary: "Some cisplatin presentations are discontinued.",
   },
   {
     id: "supplier-teva",
@@ -367,9 +367,9 @@ export const graphNodes: GraphNode[] = [
     metric: "2026",
     overview: { x: 32, y: 12 },
     risk: "critical",
-    riskReason: "Primary FDA evidence confirms the active carboplatin shortage.",
+    riskReason: "Primary FDA evidence confirms the active cisplatin shortage.",
     riskScore: 90,
-    summary: "FDA lists carboplatin injection as currently in shortage.",
+    summary: "FDA lists cisplatin injection as currently in shortage.",
   },
   {
     actionPath: true,
@@ -438,7 +438,7 @@ export const graphNodes: GraphNode[] = [
   {
     id: "source-fda-cisplatin",
     kind: "source",
-    label: "FDA cisplatin shortage",
+    label: "FDA carboplatin shortage",
     metric: "primary",
     overview: { x: 77, y: 4 },
     risk: "stable",
@@ -1039,12 +1039,12 @@ export const medicineSupplyChainEdges: Record<string, string[]> = {
 const primarySources = [
   {
     meta: "FDA, current shortage",
-    title: "Carboplatin Injection Shortage",
-    url: "https://www.accessdata.fda.gov/scripts/drugshortages/dsp_ActiveIngredientDetails.cfm?AI=Carboplatin+Injection&st=c&tab=tabs-1",
+    title: "Cisplatin Injection Shortage",
+    url: "https://www.accessdata.fda.gov/scripts/drugshortages/dsp_ActiveIngredientDetails.cfm?AI=Cisplatin+Injection&st=c&tab=tabs-1",
   },
   {
     meta: "ASHP, clinical shortage detail",
-    title: "Carboplatin Injection Shortage",
+    title: "Cisplatin Injection Shortage",
     url: "https://www.ashp.org/drug-shortages/current-shortages/drug-shortage-detail.aspx?id=930",
   },
   {
@@ -1067,8 +1067,8 @@ const additionalSources = {
   },
   fdaCisplatin: {
     meta: "FDA, related platinum chemotherapy",
-    title: "Cisplatin Injection Shortage",
-    url: "https://www.accessdata.fda.gov/scripts/drugshortages/dsp_ActiveIngredientDetails.cfm?AI=Cisplatin+Injection&st=c&tab=tabs-1",
+    title: "Carboplatin Injection Shortage",
+    url: "https://www.accessdata.fda.gov/scripts/drugshortages/dsp_ActiveIngredientDetails.cfm?AI=Carboplatin+Injection&st=c&tab=tabs-1",
   },
   fdaOxaliplatin: {
     meta: "FDA, related platinum chemotherapy",
@@ -1109,12 +1109,12 @@ export const nodeDetails: NodeDetails = {
     ],
     sources: primarySources,
     whyItMatters:
-      "Carboplatin is a platinum chemotherapy medicine where delayed availability can force oncology teams to ration, delay, or substitute treatment.",
+      "Cisplatin is a platinum chemotherapy medicine where delayed availability can force oncology teams to ration, delay, or substitute treatment.",
   },
   "event-fda-shortage": {
     confidence: "Primary evidence",
     facts: [
-      "FDA lists Carboplatin Injection as currently in shortage",
+      "FDA lists Cisplatin Injection as currently in shortage",
       "Supplier rows include GMP compliance, demand increase, shipping delay, and discontinuations",
       "This is the hard evidence anchor for the risk path",
     ],
@@ -1126,7 +1126,7 @@ export const nodeDetails: NodeDetails = {
   "component-platinum-api": {
     confidence: "High contribution",
     facts: [
-      "Active ingredient layer connects carboplatin, cisplatin, and oxaliplatin",
+      "Active ingredient layer connects cisplatin, carboplatin, and oxaliplatin",
       "API pressure is a supply-chain risk amplifier",
       "The graph separates API risk from patient data",
     ],
@@ -1139,7 +1139,7 @@ export const nodeDetails: NodeDetails = {
     confidence: "Context evidence",
     facts: [
       "Sterile injectable fill-finish capacity is a common constraint in drug shortages",
-      "Evidence is contextual, not a direct carboplatin shortage cause",
+      "Evidence is contextual, not a direct cisplatin shortage cause",
       "This node explains why API availability alone is not enough",
     ],
     prompts: ["Explain risk path"],
@@ -1152,7 +1152,7 @@ export const nodeDetails: NodeDetails = {
     facts: [
       "Oncology injectable shortages often share low-margin manufacturing fragility",
       "Used as a broader context node for methotrexate and ifosfamide",
-      "This is not the main carboplatin action path",
+      "This is not the main cisplatin action path",
     ],
     prompts: ["Explain risk path"],
     sources: [additionalSources.ashpOncology],
@@ -1224,7 +1224,7 @@ export const nodeDetails: NodeDetails = {
     facts: [
       "Platinum raw material is upstream of platinum chemotherapy",
       "South Africa is a major concentration point for platinum supply",
-      "This branch is an upstream risk amplifier, not the proven shortage cause",
+      "This branch is an upstream risk amplifier, not the proven cisplatin shortage cause",
     ],
     prompts: ["Find newer evidence", "Explain risk path"],
     sources: [
@@ -1241,7 +1241,7 @@ export const nodeDetails: NodeDetails = {
     confidence: "Elevated upstream watch",
     facts: [
       "Upstream concentration risk for platinum supply",
-      "Do not present as a proven direct cause of the FDA carboplatin shortage",
+      "Do not present as a proven direct cause of the FDA cisplatin shortage",
       "Useful for showing why Sanitas distinguishes evidence from risk signals",
     ],
     prompts: ["Find newer evidence", "Explain risk path"],
@@ -1354,7 +1354,7 @@ export const nodeDetails: NodeDetails = {
     prompts: ["Explain risk path"],
     sources: [additionalSources.fdaCisplatin],
     whyItMatters:
-      "This source supports the related cisplatin node without shifting the demo away from carboplatin.",
+      "This source supports the related carboplatin node without shifting the demo away from cisplatin.",
   },
   "source-fda-oxaliplatin": {
     confidence: "Primary Evidence Satellite",
@@ -1386,7 +1386,7 @@ export const nodeDetails: NodeDetails = {
     prompts: ["Explain risk path"],
     sources: [additionalSources.fdaSterileInjectables],
     whyItMatters:
-      "This source backs the sterile injectable layer as context rather than direct carboplatin proof.",
+      "This source backs the sterile injectable layer as context rather than direct cisplatin proof.",
   },
   "source-ashp-carboplatin": {
     confidence: "Clinical Evidence Satellite",

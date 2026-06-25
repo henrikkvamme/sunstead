@@ -105,7 +105,7 @@ export const carboplatinDemoReplaySteps: CarboplatinDemoReplayStep[] = [
     label: "Map current evidence",
     durationMs: 2600,
     workingNote:
-      "Starting from the selected Carboplatin graph. I am reading the current shortage anchor, supplier constraint, and quality event before looking outside the mapped evidence.",
+      "Starting from the selected Cisplatin graph. I am reading the current shortage anchor, supplier constraint, and quality event before looking outside the mapped evidence.",
     result:
       "Mapped FDA shortage evidence, ASHP context, Accord / Intas supplier constraint, and GMP compliance event.",
     tools: [
@@ -145,7 +145,7 @@ export const carboplatinDemoReplaySteps: CarboplatinDemoReplayStep[] = [
         toolName: "webSearch",
         label: "Search 2026 API-risk signal",
         input: {
-          query: "2026 platinum chemotherapy API shortage carboplatin source",
+          query: "2026 platinum chemotherapy API shortage cisplatin source",
           maxResults: 3,
         },
         result: "Matched a 2026 platinum chemotherapy API shortage report.",
@@ -228,7 +228,7 @@ export const carboplatinDemoReplaySteps: CarboplatinDemoReplayStep[] = [
         label: "Validate action path",
         input: {
           expectedActionPath:
-            "Carboplatin Injection -> Accord / Intas -> GMP compliance constraint",
+            "Cisplatin Injection -> Accord / Intas -> GMP compliance constraint",
         },
         result: "Action path remains unchanged after adding contextual source.",
       },
@@ -252,7 +252,7 @@ const demoMessages: CarboplatinDemoMessage[] = [
   {
     id: "fda-anchor",
     kind: "agent",
-    text: "I found the hard evidence anchor: FDA lists Carboplatin Injection in shortage.",
+    text: "I found the hard evidence anchor: FDA lists Cisplatin Injection in shortage.",
   },
   {
     id: "supplier-constraint",

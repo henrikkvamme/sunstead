@@ -7,7 +7,7 @@ import {
   supplierRiskPath,
 } from "./carboplatin-risk-scenario";
 
-describe("carboplatin report preview", () => {
+describe("cisplatin report preview", () => {
   it("uses the supplier Risk Path instead of the evidence traversal", () => {
     expect(carboplatinReportPreview.actionPathNodeIds).toEqual(supplierRiskPath);
   });
@@ -43,7 +43,7 @@ describe("carboplatin report preview", () => {
   });
 
   it("links to the light-mode PDF report asset", () => {
-    expect(carboplatinReportPreview.pdfUrl).toBe("/reports/carboplatin-supply-risk-brief.pdf");
+    expect(carboplatinReportPreview.pdfUrl).toBe("/reports/cisplatin-supply-risk-brief.pdf");
   });
 
   it("keeps caveats away from patient modeling and direct API causality", () => {

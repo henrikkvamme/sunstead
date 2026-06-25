@@ -1,8 +1,8 @@
-# Carboplatin Report Agent Plan
+# Cisplatin Report Agent Plan
 
 ## Purpose
 
-Create the report experience that appears after the scripted AI investigation reaches `report-ready`. The report is for a hospital pharmacy or supply-risk team watching the Carboplatin Injection risk path. It must be credible enough to feel like a real Sanitas output, but simple enough to understand in a few seconds in the demo video.
+Create the report experience that appears after the scripted AI investigation reaches `report-ready`. The report is for a hospital pharmacy or supply-risk team watching the Cisplatin Injection risk path. It must be credible enough to feel like a real Sanitas output, but simple enough to understand in a few seconds in the demo video.
 
 The report should not model the patient. The patient story belongs in narration. The product report models medicine supply risk and operational response.
 
@@ -10,7 +10,7 @@ The report should not model the patient. The patient story belongs in narration.
 
 The report will be visible briefly, so it needs one dominant message:
 
-> Carboplatin Injection has an active shortage signal, with the clearest action path tied to FDA shortage evidence, Accord / Intas supplier constraints, and GMP compliance requirements. Prepare alternate supplier ordering before stock falls below safety threshold.
+> Cisplatin Injection has an active shortage signal, with the clearest action path tied to FDA shortage evidence, Accord / Intas supplier constraints, and GMP compliance requirements. Prepare alternate supplier ordering before stock falls below safety threshold.
 
 Avoid a dense research memo. The viewer should be able to read the top half of the report almost instantly.
 
@@ -30,7 +30,7 @@ Important IDs:
 The report should preserve the same single action path used by the graph:
 
 ```text
-Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint
+Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint
 ```
 
 Context branches may appear as supporting material, but they must not become a second red storyline. API pressure, South African platinum supply, demand increase, shipping delay, discontinued presentations, and other suppliers are context signals only.
@@ -42,16 +42,16 @@ Use a compact report preview, not a full document page. It should feel like a ge
 Suggested layout:
 
 1. Header row
-   - Title: `Carboplatin Injection Supply Risk Brief`
+   - Title: `Cisplatin Injection Supply Risk Brief`
    - Status pill: `Action needed`
    - Timestamp or freshness line: `Prepared from mapped evidence`
 
 2. One-sentence finding
-   - `Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready carboplatin supply.`
+   - `Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready cisplatin supply.`
 
 3. Risk path strip
    - Four inline nodes with arrows:
-   - `Carboplatin Injection`
+   - `Cisplatin Injection`
    - `FDA current shortage`
    - `Accord / Intas`
    - `GMP compliance constraint`
@@ -80,11 +80,11 @@ Rank sources by how directly they support the action.
 
 Primary evidence:
 
-- FDA Carboplatin Injection shortage page
+- FDA Cisplatin Injection shortage page
   - Use for current shortage status and supplier-level reasons.
   - This is the evidence anchor.
 
-- ASHP Carboplatin Injection shortage page
+- ASHP Cisplatin Injection shortage page
   - Use for clinical pharmacy shortage context.
   - This supports hospital relevance.
 
@@ -138,11 +138,11 @@ Initial values:
 {
   id: "report-carboplatin-demo",
   medicineId: "med-carboplatin",
-  title: "Carboplatin Injection Supply Risk Brief",
+  title: "Cisplatin Injection Supply Risk Brief",
   status: "action-needed",
   generatedAtLabel: "Prepared from mapped evidence",
   headlineFinding:
-    "Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready carboplatin supply.",
+    "Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready cisplatin supply.",
   actionPathNodeIds: [
     "med-carboplatin",
     "event-fda-shortage",
@@ -204,19 +204,19 @@ Use this copy unless a stronger verified source changes the facts:
 Title:
 
 ```text
-Carboplatin Injection Supply Risk Brief
+Cisplatin Injection Supply Risk Brief
 ```
 
 Finding:
 
 ```text
-Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready carboplatin supply.
+Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready cisplatin supply.
 ```
 
 Why it matters:
 
 ```text
-Carboplatin is a platinum chemotherapy medicine. Delays can force oncology teams to ration, delay, or substitute treatment, so supply teams need early warning before inventory reaches the safety threshold.
+Cisplatin is a platinum chemotherapy medicine. Delays can force oncology teams to ration, delay, or substitute treatment, so supply teams need early warning before inventory reaches the safety threshold.
 ```
 
 Action:

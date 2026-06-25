@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cisplatin Injection Supply Risk Brief</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm;
+      }
+
+      :root {
+        color: oklch(0.24 0.018 220);
+        background: oklch(0.985 0.006 96);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      body {
+        margin: 0;
+        background: oklch(0.985 0.006 96);
+        color: oklch(0.24 0.018 220);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      main {
+        display: grid;
+        gap: 18px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: start;
+        border-bottom: 1px solid oklch(0.84 0.024 210);
+        padding-bottom: 18px;
+      }
+
+      .brand {
+        color: oklch(0.36 0.055 190);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 18ch;
+        margin-top: 8px;
+        color: oklch(0.22 0.023 220);
+        font-size: 30px;
+        font-weight: 760;
+        line-height: 0.98;
+      }
+
+      .meta {
+        display: grid;
+        gap: 8px;
+        justify-items: end;
+        text-align: right;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid oklch(0.55 0.16 32);
+        border-radius: 999px;
+        background: oklch(0.96 0.035 48);
+        padding: 6px 10px;
+        color: oklch(0.42 0.15 32);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .meta span:not(.status) {
+        color: oklch(0.46 0.022 220);
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: 1.4fr 0.8fr;
+        gap: 14px;
+      }
+
+      .finding {
+        border: 1px solid oklch(0.84 0.024 210);
+        border-radius: 10px;
+        background: oklch(0.995 0.004 96);
+        padding: 18px;
+      }
+
+      .finding strong {
+        display: block;
+        max-width: 64ch;
+        color: oklch(0.21 0.023 220);
+        font-size: 16px;
+        line-height: 1.28;
+      }
+
+      .finding p {
+        max-width: 72ch;
+        margin-top: 10px;
+        color: oklch(0.38 0.02 220);
+        font-size: 11px;
+      }
+
+      .decision-box {
+        border: 1px solid oklch(0.64 0.13 35);
+        border-radius: 10px;
+        background: oklch(0.97 0.026 48);
+        padding: 16px;
+      }
+
+      .decision-box h2 {
+        color: oklch(0.42 0.15 32);
+        font-size: 11px;
+        font-weight: 820;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .decision-box strong {
+        display: block;
+        margin-top: 8px;
+        color: oklch(0.24 0.022 220);
+        font-size: 15px;
+        line-height: 1.22;
+      }
+
+      .decision-box p {
+        margin-top: 8px;
+        color: oklch(0.36 0.022 220);
+      }
+
+      section {
+        display: grid;
+        gap: 10px;
+      }
+
+      section h2 {
+        color: oklch(0.34 0.04 190);
+        font-size: 12px;
+        font-weight: 820;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .path {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .path article {
+        min-height: 72px;
+        border: 1px solid oklch(0.82 0.028 210);
+        border-radius: 8px;
+        background: oklch(0.996 0.003 96);
+        padding: 11px;
+      }
+
+      .path small {
+        color: oklch(0.5 0.026 220);
+        font-size: 9px;
+        font-weight: 760;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .path strong {
+        display: block;
+        margin-top: 7px;
+        color: oklch(0.23 0.022 220);
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .evidence-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+      }
+
+      .evidence-grid article {
+        border: 1px solid oklch(0.82 0.028 210);
+        border-radius: 8px;
+        background: oklch(0.996 0.003 96);
+        padding: 12px;
+      }
+
+      .evidence-grid small {
+        color: oklch(0.4 0.064 190);
+        font-size: 9px;
+        font-weight: 820;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .evidence-grid strong {
+        display: block;
+        margin-top: 7px;
+        color: oklch(0.22 0.023 220);
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .evidence-grid p {
+        margin-top: 7px;
+        color: oklch(0.42 0.02 220);
+      }
+
+      .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .panel {
+        border: 1px solid oklch(0.84 0.024 210);
+        border-radius: 10px;
+        background: oklch(0.996 0.003 96);
+        padding: 15px;
+      }
+
+      ul {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      li {
+        position: relative;
+        padding-left: 16px;
+        color: oklch(0.34 0.02 220);
+      }
+
+      li::before {
+        position: absolute;
+        top: 0.55em;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: oklch(0.52 0.12 190);
+        content: "";
+      }
+
+      .caveat {
+        border-top: 1px solid oklch(0.84 0.024 210);
+        padding-top: 13px;
+        color: oklch(0.44 0.02 220);
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid oklch(0.84 0.024 210);
+        padding-top: 10px;
+        color: oklch(0.5 0.018 220);
+        font-size: 9px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="brand">Sanitas supply intelligence</p>
+          <h1>Cisplatin Injection Supply Risk Brief</h1>
+        </div>
+        <div class="meta">
+          <span class="status">Action needed</span>
+          <span>Prepared from mapped evidence</span>
+          <span>Demo report preview</span>
+        </div>
+      </header>
+
+      <div class="summary">
+        <section class="finding" aria-label="Finding">
+          <strong
+            >Active shortage evidence and a supplier quality constraint create a high-risk path for
+            hospital-ready cisplatin supply.</strong
+          >
+          <p>
+            Cisplatin is a platinum chemotherapy medicine. Delays can force oncology teams to
+            ration, delay, or substitute treatment, so supply teams need early warning before
+            Medicine Availability reaches the safety threshold.
+          </p>
+        </section>
+
+        <aside class="decision-box" aria-label="Recommended action">
+          <h2>Recommended action</h2>
+          <strong>Prepare alternate supplier order</strong>
+          <p>
+            Verify approved supplier availability and lead time before stock falls below safety
+            threshold.
+          </p>
+        </aside>
+      </div>
+
+      <section aria-label="Risk Path">
+        <h2>Risk Path</h2>
+        <div class="path">
+          <article>
+            <small>Medicine</small>
+            <strong>Cisplatin Injection</strong>
+          </article>
+          <article>
+            <small>Primary signal</small>
+            <strong>FDA current shortage</strong>
+          </article>
+          <article>
+            <small>Supplier path</small>
+            <strong>Accord / Intas</strong>
+          </article>
+          <article>
+            <small>Constraint</small>
+            <strong>GMP compliance requirement</strong>
+          </article>
+        </div>
+      </section>
+
+      <section aria-label="Evidence">
+        <h2>Evidence priority</h2>
+        <div class="evidence-grid">
+          <article>
+            <small>Primary</small>
+            <strong>FDA Cisplatin Injection shortage record</strong>
+            <p>Current shortage status and supplier-level reasons anchor the action path.</p>
+          </article>
+          <article>
+            <small>Clinical</small>
+            <strong>ASHP Cisplatin Injection shortage detail</strong>
+            <p>Clinical pharmacy context supports hospital relevance and usual-ordering risk.</p>
+          </article>
+          <article>
+            <small>Supporting</small>
+            <strong>Times of India API report, May 2026</strong>
+            <p>Recent upstream API-risk signal, useful context but not primary U.S. proof.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="two-column">
+        <section class="panel" aria-label="Operational checklist">
+          <h2>Operational checklist</h2>
+          <ul>
+            <li>Check approved alternate suppliers.</li>
+            <li>Confirm lead times for usable presentations.</li>
+            <li>Review current stock and safety threshold.</li>
+            <li>Escalate oncology allocation policy only if inventory drops.</li>
+          </ul>
+        </section>
+
+        <section class="panel" aria-label="Confidence and caveats">
+          <h2>Confidence and caveats</h2>
+          <ul>
+            <li>Confidence is high because FDA and ASHP are primary shortage sources.</li>
+            <li>API and platinum-market signals increase confidence in upstream fragility.</li>
+            <li>Patient impact is narration only and not represented as patient-level data.</li>
+            <li>Upstream signals are risk amplifiers, not the direct proven cause.</li>
+          </ul>
+        </section>
+      </div>
+
+      <p class="caveat">
+        This report preview is an operational supply-risk brief. It does not make a procurement,
+        formulary, or clinical treatment decision.
+      </p>
+
+      <footer>
+        <span>Sanitas Graph Intelligence Agent</span>
+        <span>Cisplatin demo scenario</span>
+      </footer>
+    </main>
+  </body>
+</html>

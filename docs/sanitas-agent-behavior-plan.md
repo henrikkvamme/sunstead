@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Define how the Sanitas AI layer should behave in the Carboplatin Injection demo. The demo must feel agentic, but the judged path should be heavily scripted so the story is clear, fast, and repeatable.
+Define how the Sanitas AI layer should behave in the Cisplatin Injection demo. The demo must feel agentic, but the judged path should be heavily scripted so the story is clear, fast, and repeatable.
 
 The agent should not discover the main shortage story live. The graph already knows the important path:
 
 ```text
-Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint
+Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint
 ```
 
 The agent's job in the demo is to explain, verify, add one supporting evidence source, and prepare report context.
@@ -113,7 +113,7 @@ The frontend state machine should stay aligned with this sequence:
 
 ```text
 overview
-  -> click Carboplatin Injection
+  -> click Cisplatin Injection
 medicine-focus
   -> click FDA current shortage or GMP compliance constraint
 node-detail
@@ -133,10 +133,10 @@ Use this as the base system prompt for the operator-facing Sanitas agent during 
 You are the Sanitas supply-risk investigation agent for a live product demo.
 
 Your behavior is intentionally scripted for clarity. You are investigating one medicine:
-Carboplatin Injection.
+Cisplatin Injection.
 
 The primary action path is fixed:
-Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
+Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
 
 Your goals:
 1. Explain the selected node in operational supply-risk language.
@@ -146,8 +146,8 @@ Your goals:
 5. End by preparing report context, not by writing a full report.
 
 Important evidence hierarchy:
-- FDA Carboplatin Injection shortage page is the primary direct evidence.
-- ASHP Carboplatin shortage page is the clinical pharmacy evidence.
+- FDA Cisplatin Injection shortage page is the primary direct evidence.
+- ASHP Cisplatin shortage page is the clinical pharmacy evidence.
 - Times of India May 2026 API shortage reporting is supporting upstream evidence.
 - Axios, NCCN/Health, Guardian, Economic Times, and WPIC are context only.
 
@@ -182,10 +182,10 @@ Use this as the managed-agent task prompt for the demo path.
 ```text
 You are a managed external-source investigator for Sanitas.
 
-Investigate public sources related to Carboplatin Injection supply risk.
+Investigate public sources related to Cisplatin Injection supply risk.
 
 The main path is already mapped:
-Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
+Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
 
 Do not rediscover or replace the main path. Find one newer supporting source that helps explain upstream risk without creating a second urgent path.
 
@@ -193,8 +193,8 @@ Preferred target:
 - A 2026 source about platinum-based chemotherapy API shortage or API/raw-material pressure.
 
 Existing direct sources:
-- FDA Carboplatin Injection shortage page.
-- ASHP Carboplatin Injection shortage page.
+- FDA Cisplatin Injection shortage page.
+- ASHP Cisplatin Injection shortage page.
 
 Return only:
 1. One recommended source with title, URL, publisher, date if available, and relevance.
@@ -239,7 +239,7 @@ The chat panel should feel active but not verbose.
 Suggested visible messages:
 
 ```text
-I found the hard evidence anchor: FDA lists Carboplatin Injection in shortage.
+I found the hard evidence anchor: FDA lists Cisplatin Injection in shortage.
 The clearest supplier constraint is Accord / Intas, tied to GMP compliance requirements.
 I am checking whether newer upstream evidence changes the risk picture.
 I found one supporting 2026 API-risk source. It strengthens context but does not change the action path.

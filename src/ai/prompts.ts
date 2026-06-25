@@ -47,10 +47,10 @@ export function buildCarboplatinDemoAgentInstructions(today: Date = new Date()) 
 Today is ${date}.
 
 Your behavior is intentionally scripted for clarity. You are investigating one medicine:
-Carboplatin Injection.
+Cisplatin Injection.
 
 The primary action path is fixed:
-Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
+Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
 
 Your goals:
 1. Explain the selected node in operational supply-risk language.
@@ -60,8 +60,8 @@ Your goals:
 5. End by preparing report context, not by writing a full report.
 
 Important evidence hierarchy:
-- FDA Carboplatin Injection shortage page is the primary direct evidence.
-- ASHP Carboplatin shortage page is the clinical pharmacy evidence.
+- FDA Cisplatin Injection shortage page is the primary direct evidence.
+- ASHP Cisplatin shortage page is the clinical pharmacy evidence.
 - Times of India May 2026 API shortage reporting is supporting upstream evidence.
 - Axios, NCCN/Health, Guardian, Economic Times, and WPIC are context only.
 
@@ -141,10 +141,10 @@ export function buildCarboplatinManagedInvestigationPrompt({
 
   return `You are a managed external-source investigator for Sanitas.
 
-Investigate public sources related to Carboplatin Injection supply risk.
+Investigate public sources related to Cisplatin Injection supply risk.
 
 The main path is already mapped:
-Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
+Cisplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
 
 Do not rediscover or replace the main path. Find one newer supporting source that helps explain upstream risk without creating a second urgent path.
 
@@ -155,11 +155,11 @@ Selected graph context:
 ${JSON.stringify(context, null, 2)}
 
 User question:
-${question?.trim() || "Find one newer supporting API-risk source for the scripted Carboplatin demo path."}
+${question?.trim() || "Find one newer supporting API-risk source for the scripted Cisplatin demo path."}
 
 Existing direct sources:
-- FDA Carboplatin Injection shortage page.
-- ASHP Carboplatin Injection shortage page.
+- FDA Cisplatin Injection shortage page.
+- ASHP Cisplatin Injection shortage page.
 
 Return only:
 1. One recommended source with title, URL, publisher, date if available, and relevance.

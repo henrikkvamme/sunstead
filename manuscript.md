@@ -5,10 +5,10 @@ Product name: sanitas
  - 
 3. Then video of us telling a story of a specific patient that needs a drug that is critical, showing news etc
 4. 
-5. Demo of application, first overview over all medicines the hospital manages, then click on the specific medicine that is important for the patient
-- Through a bottom up approach, Sanitas models a live digital twin of the entire supply chain risk for the hospital's medicines.
-- Operators can view the entire picture, from the medicine, to its active ingredients, manufacturers, and relevant events. Resulting in hospitals spotting upstream risks long before patients are affected.
-- We can choose to further investigate an event, and generate a report aiding in life saving decisions.
+5. Demo the application: start with the hospital's medicine overview, then click Cisplatin Injection, the medicine our patient depends on.
+- Sanitas maps the supply chain behind each medicine: active ingredients, manufacturers, suppliers, and current events.
+- The graph is a digital twin of the supply chains risks and flags risk path before it reaches the patient.
+- Hospitals can investigate, the agent checks the evidence, and Sanitas prepares a short report for the hospital team.
 6. Introduce us, our background that support that we can build this
 7. Techinal kafka, neo4j, Aiven, Claude managed agents, research papers
 8. Timeline: 6 months and 1% and 0.1% (WHO)
