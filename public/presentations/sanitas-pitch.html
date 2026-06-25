@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sanitas Pitch</title>
+    <style>
+      @page {
+        size: 13.333in 7.5in;
+        margin: 0;
+      }
+
+      :root {
+        color: #11212a;
+        background: #f6f7f3;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      body {
+        margin: 0;
+        background: #f6f7f3;
+      }
+
+      .slide {
+        position: relative;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        width: 13.333in;
+        height: 7.5in;
+        padding: 0.62in 0.74in;
+        overflow: hidden;
+        page-break-after: always;
+      }
+
+      .slide.dark {
+        color: #eef7f5;
+        background: #14272f;
+      }
+
+      header,
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+      }
+
+      main {
+        display: grid;
+        align-content: center;
+        gap: 28px;
+        max-width: 9.9in;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 11ch;
+        font-size: 78px;
+        font-weight: 780;
+        letter-spacing: 0;
+        line-height: 0.94;
+      }
+
+      h2 {
+        max-width: 16ch;
+        font-size: 56px;
+        font-weight: 760;
+        letter-spacing: 0;
+        line-height: 0.98;
+      }
+
+      .lead {
+        max-width: 8.5in;
+        color: #36515c;
+        font-size: 27px;
+        line-height: 1.22;
+      }
+
+      .dark .lead {
+        color: #bed0d0;
+      }
+
+      .pill {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        border: 1px solid #c7482f;
+        border-radius: 999px;
+        padding: 8px 14px;
+        color: #b33624;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .dark .pill {
+        border-color: #ff9b6f;
+        color: #ffb18c;
+      }
+
+      .two {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 34px;
+        align-items: center;
+      }
+
+      .cards {
+        display: grid;
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid #d6ddd8;
+        border-radius: 14px;
+        background: #ffffff;
+        padding: 18px 20px;
+        box-shadow: 0 16px 34px rgb(31 55 64 / 9%);
+      }
+
+      .dark .card {
+        border-color: #37525a;
+        background: #19333c;
+        box-shadow: none;
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 22px;
+      }
+
+      .card p {
+        color: #52666d;
+        font-size: 16px;
+        line-height: 1.35;
+      }
+
+      .dark .card p {
+        color: #bdd0d0;
+      }
+
+      .path {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .node {
+        min-height: 132px;
+        border: 1px solid #e0a38d;
+        border-radius: 14px;
+        background: #fff7f2;
+        padding: 16px;
+      }
+
+      .node small {
+        display: block;
+        margin-bottom: 18px;
+        color: #a3452a;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .node strong {
+        display: block;
+        font-size: 24px;
+        line-height: 1.08;
+      }
+
+      .report {
+        display: grid;
+        max-width: 7.4in;
+        gap: 12px;
+        border: 1px solid #cfddd7;
+        border-radius: 18px;
+        background: #fff;
+        padding: 24px;
+      }
+
+      .report strong {
+        color: #b33624;
+        font-size: 18px;
+        text-transform: uppercase;
+      }
+
+      .report p {
+        color: #2f454e;
+        font-size: 25px;
+        line-height: 1.24;
+      }
+
+      ul {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding-left: 24px;
+        color: #36515c;
+        font-size: 26px;
+        line-height: 1.22;
+      }
+
+      .dark ul {
+        color: #bed0d0;
+      }
+
+      .accent {
+        color: #c7482f;
+      }
+
+      .dark .accent {
+        color: #ff9b6f;
+      }
+
+      footer {
+        color: #789096;
+      }
+
+      .dark footer,
+      .dark header {
+        color: #b8cdcb;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="slide dark">
+      <header>
+        <div class="brand">
+          <img src="../logo-candidates/sanitas-logo-4-compact-orbit-transparent.png" alt="" />
+          <span>Sanitas</span>
+        </div>
+        <span>Medicine supply risk</span>
+      </header>
+      <main>
+        <span class="pill">Hackathon demo</span>
+        <h1>Spot risk before treatment is delayed.</h1>
+        <p class="lead">
+          Sanitas helps hospitals see which medicines are exposed, why the risk exists, and what
+          the supply team should check next.
+        </p>
+      </main>
+      <footer>
+        <span>Built for hospital pharmacy teams</span>
+        <span>2026</span>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="brand">
+          <img src="../logo-candidates/sanitas-logo-4-compact-orbit-transparent.png" alt="" />
+          <span>Sanitas</span>
+        </div>
+        <span>Problem</span>
+      </header>
+      <main class="two">
+        <div>
+          <span class="pill">Why it matters</span>
+          <h2>Shortages hit late.</h2>
+          <p class="lead">
+            Hospitals often see the problem when ordering gets hard. By then, oncology teams may
+            already be planning substitutions, rationing, or delays.
+          </p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <strong>Patients depend on steady supply</strong>
+            <p>For the demo, the patient story centers on a cancer medicine.</p>
+          </article>
+          <article class="card">
+            <strong>Risk starts upstream</strong>
+            <p>Suppliers, ingredients, quality events, logistics, and market signals all matter.</p>
+          </article>
+        </div>
+      </main>
+      <footer>
+        <span>Patient story stays narration only</span>
+        <span>Supply graph stays operational</span>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="brand">
+          <img src="../logo-candidates/sanitas-logo-4-compact-orbit-transparent.png" alt="" />
+          <span>Sanitas</span>
+        </div>
+        <span>Product</span>
+      </header>
+      <main>
+        <span class="pill">What we built</span>
+        <h2>A live map of medicine supply risk.</h2>
+        <ul>
+          <li>Overview of medicines the hospital manages.</li>
+          <li>Graph of ingredients, suppliers, manufacturers, places, events, and sources.</li>
+          <li>Risk scores that make one action path stand out.</li>
+        </ul>
+      </main>
+      <footer>
+        <span>Built as a dashboard, not a research memo</span>
+        <span>Fast to scan</span>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="brand">
+          <img src="../logo-candidates/sanitas-logo-4-compact-orbit-transparent.png" alt="" />
+          <span>Sanitas</span>
+        </div>
+        <span>Cisplatin demo</span>
+      </header>
+      <main>
+        <span class="pill">One clear path</span>
+        <h2>Cisplatin Injection is the medicine we click.</h2>
+        <div class="path">
+          <article class="node">
+            <small>Medicine</small>
+            <strong>Cisplatin Injection</strong>
+          </article>
+          <article class="node">
+            <small>Signal</small>
+            <strong>FDA current shortage</strong>
+          </article>
+          <article class="node">
+            <small>Supplier</small>
+            <strong>Accord / Intas</strong>
+          </article>
+          <article class="node">
+            <small>Constraint</small>
+            <strong>GMP compliance</strong>
+          </article>
+        </div>
+      </main>
+      <footer>
+        <span>Other risks stay visible as context</span>
+        <span>One path needs action</span>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="brand">
+          <img src="../logo-candidates/sanitas-logo-4-compact-orbit-transparent.png" alt="" />
+          <span>Sanitas</span>
+        </div>
+        <span>Agent flow</span>
+      </header>
+      <main class="two">
+        <div>
+          <span class="pill">Investigate</span>
+          <h2>The agent checks the evidence.</h2>
+          <p class="lead">
+            It reads the mapped graph, searches for one newer source, adds it as supporting
+            evidence, and prepares report context.
+          </p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <strong>Tool calls are visible</strong>
+            <p>The demo shows the investigation steps instead of hiding them.</p>
+          </article>
+          <article class="card">
+            <strong>Report ready</strong>
+            <p>The output is prepared for the hospital team, not auto-approved.</p>
+          </article>
+        </div>
+      </main>
+      <footer>
+        <span>Evidence first</span>
+        <span>No clinical treatment advice</span>
+      </footer>
+    </section>
+
+    <section class="slide dark">
+      <header>
+        <div class="brand">
+          <img src="../logo-candidates/sanitas-logo-4-compact-orbit-transparent.png" alt="" />
+          <span>Sanitas</span>
+        </div>
+        <span>Next step</span>
+      </header>
+      <main>
+        <span class="pill">Decision brief</span>
+        <h2>Short report. Clear action.</h2>
+        <div class="report">
+          <strong>Action needed</strong>
+          <p>
+            Prepare alternate supplier order. Verify approved supplier availability and lead time
+            before stock falls below safety threshold.
+          </p>
+        </div>
+        <p class="lead">
+          With six months, we would connect live data streams, expand the graph, and test it with
+          hospital supply teams.
+        </p>
+      </main>
+      <footer>
+        <span>Kafka, Neo4j, Aiven, Claude managed agents</span>
+        <span>Built by a team that can ship it</span>
+      </footer>
+    </section>
+  </body>
+</html>
