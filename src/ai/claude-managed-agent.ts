@@ -1,3 +1,5 @@
+import { readServerEnv, type SunsteadServerEnv } from "#/env";
+
 import { buildNodeInvestigationPrompt, type NodeInvestigationPromptInput } from "./prompts";
 
 export const claudeManagedAgentsBetaHeader = "managed-agents-2026-04-01";
@@ -61,7 +63,7 @@ export type ClaudeManagedSourceInvestigationResult =
 export type ClaudeManagedAgentFetch = typeof fetch;
 
 export function resolveClaudeManagedAgentConfig(
-  env: NodeJS.ProcessEnv = process.env,
+  env: SunsteadServerEnv = readServerEnv(),
 ): ClaudeManagedAgentConfigState {
   const config = {
     agentId: env.CLAUDE_MANAGED_AGENT_ID ?? "",

@@ -33,7 +33,6 @@ import {
 import {
   graphEdges,
   graphNodes,
-  investigationTargetId,
   medicineSupplyChainEdges,
   nodeDetails,
   riskPathBase,
@@ -49,6 +48,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type GraphMode = "focused" | "overview";
+type ViewMode = "investigating" | "medicine-focus" | "node-detail" | "overview" | "report-ready";
 
 type CommandPaletteItem = {
   action: () => void;
@@ -67,6 +67,37 @@ const kindIcons: Record<GraphNode["kind"], ReactNode> = {
   source: <FileText aria-hidden size={14} />,
   supplier: <Factory aria-hidden size={15} />,
 };
+
+function riskScoreFor(item: GraphEdge | GraphNode) {
+  if (typeof item.riskScore === "number") {
+    return item.riskScore;
+  }
+
+  if (item.risk === "critical") {
+    return 86;
+  }
+
+  if (item.risk === "elevated") {
+    return 66;
+  }
+
+  if (item.risk === "watch") {
+    return 44;
+  }
+
+  return 20;
+}
+
+function riskStyleFor(item: GraphEdge | GraphNode, extra?: CSSProperties) {
+  const score = riskScoreFor(item);
+  const intensity = Math.max(0.16, Math.min(0.88, score / 100));
+
+  return {
+    "--risk-alpha": intensity.toFixed(2),
+    "--risk-score": String(score),
+    ...extra,
+  } as CSSProperties;
+}
 
 function buildOverviewLayout(nodes: GraphNode[]) {
   const points = new Map(nodes.map((node) => [node.id, { ...node.overview }]));
@@ -166,7 +197,7 @@ function writeUrlGraphMode(
 }
 
 export function Dashboard() {
-  const [mode, setMode] = useState<GraphMode>("overview");
+  const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const [selectedNodeId, setSelectedNodeId] = useState(selectedMedicineId);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -178,22 +209,22 @@ export function Dashboard() {
   const [pulsePath, setPulsePath] = useState(false);
   const commandInputRef = useRef<HTMLInputElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const graphMode: GraphMode = viewMode === "overview" ? "overview" : "focused";
 
-  const activePath = useMemo(
-    () => new Set(addedEvidence ? [...riskPathBase, scriptedSourceId] : riskPathBase),
-    [addedEvidence],
-  );
+  const activePath = useMemo(() => new Set(riskPathBase), []);
   const selectedNode = graphNodes.find((node) => node.id === selectedNodeId) ?? graphNodes[0];
   const selectedDetails = nodeDetails[selectedNode.id] ?? nodeDetails[selectedMedicineId];
   const evidenceCount = addedEvidence ? 5 : 4;
   const confidence = addedEvidence ? "92%" : "88%";
+  const sidebarOpen =
+    viewMode === "node-detail" || viewMode === "investigating" || viewMode === "report-ready";
 
   const openCommandPalette = () => {
     setCommandPaletteOpen(true);
   };
 
   const showOverview = () => {
-    setMode("overview");
+    setViewMode("overview");
     setSelectedNodeId(selectedMedicineId);
     writeUrlGraphMode("overview");
   };
@@ -212,6 +243,7 @@ export function Dashboard() {
     const finish = window.setTimeout(() => {
       setAddedEvidence(true);
       setInvestigationState("complete");
+      setViewMode("report-ready");
       setPulsePath(true);
     }, 2100);
     const clearPulse = window.setTimeout(() => setPulsePath(false), 3400);
@@ -226,7 +258,7 @@ export function Dashboard() {
     const syncFromUrl = () => {
       const nextMode = readUrlGraphMode();
 
-      setMode(nextMode);
+      setViewMode(nextMode === "overview" ? "overview" : "medicine-focus");
       setSelectedNodeId(selectedMedicineId);
     };
 
@@ -269,7 +301,7 @@ export function Dashboard() {
   }, [commandPaletteOpen]);
 
   const focusMedicine = () => {
-    setMode("focused");
+    setViewMode("medicine-focus");
     setSelectedNodeId(selectedMedicineId);
     writeUrlGraphMode("focused");
   };
@@ -279,8 +311,8 @@ export function Dashboard() {
       return;
     }
 
-    setMode("focused");
-    setSelectedNodeId(investigationTargetId);
+    setViewMode("investigating");
+    setSelectedNodeId("event-fda-shortage");
     setInvestigationState("running");
     writeUrlGraphMode("focused");
   };
@@ -292,7 +324,7 @@ export function Dashboard() {
     }
 
     setSelectedNodeId(node.id);
-    setMode("focused");
+    setViewMode("node-detail");
     writeUrlGraphMode("focused");
   };
 
@@ -326,7 +358,7 @@ export function Dashboard() {
   ];
 
   return (
-    <main className={cn("medicine-graph-screen", `is-${mode}`)}>
+    <main className={cn("medicine-graph-screen", `is-${graphMode}`, `view-${viewMode}`)}>
       <nav className="medicine-graph-nav" aria-label="Medicine graph controls">
         <button className="medicine-graph-brand" type="button" onClick={showOverview}>
           <img
@@ -346,15 +378,17 @@ export function Dashboard() {
         >
           <Search aria-hidden size={15} />
           <span>
-            {mode === "overview" ? "Find medicine, supplier, source" : selectedNode.label}
+            {viewMode === "overview" ? "Find medicine, supplier, source" : selectedNode.label}
           </span>
           <kbd>⌘K</kbd>
         </button>
 
         <div className="medicine-graph-nav-actions">
-          <span className={cn("medicine-graph-risk-pill", mode === "focused" && "is-critical")}>
+          <span
+            className={cn("medicine-graph-risk-pill", graphMode === "focused" && "is-critical")}
+          >
             <ShieldAlert aria-hidden size={15} />
-            {mode === "overview" ? "7 mapped medicines" : "87 critical"}
+            {viewMode === "overview" ? "7 mapped medicines" : "87 action path"}
           </span>
           <button
             aria-label="Investigate evidence"
@@ -385,7 +419,7 @@ export function Dashboard() {
           activePath={activePath}
           addedEvidence={addedEvidence}
           hoveredNodeId={hoveredNodeId}
-          mode={mode}
+          mode={graphMode}
           pulsePath={pulsePath}
           selectedNodeId={selectedNode.id}
           onFocusMedicine={focusMedicine}
@@ -397,26 +431,24 @@ export function Dashboard() {
             }
 
             setSelectedNodeId(node.id);
-            if (mode === "overview") {
-              setMode("focused");
-              writeUrlGraphMode("focused");
-            }
+            setViewMode("node-detail");
+            writeUrlGraphMode("focused");
           }}
         />
       </section>
 
-      {mode === "focused" ? (
+      {sidebarOpen ? (
         <RiskSidePanel
-          key={selectedNode.id}
+          key={`${viewMode}-${selectedNode.id}`}
           addedEvidence={addedEvidence}
           confidence={confidence}
           details={selectedDetails}
           evidenceCount={evidenceCount}
           investigationState={investigationState}
-          mode={mode}
           node={selectedNode}
           onBackToOverview={showOverview}
           onStartInvestigation={startInvestigation}
+          viewMode={viewMode}
         />
       ) : null}
 
@@ -600,13 +632,35 @@ function MedicineRiskGraph({
   pulsePath: boolean;
   selectedNodeId: string;
 }) {
+  const focusEdgeIds = new Set(medicineSupplyChainEdges[selectedMedicineId] ?? []);
+
+  if (addedEvidence) {
+    focusEdgeIds.add("e-api-shortage-signal");
+    focusEdgeIds.add("e-api-shortage-times-india");
+  }
+
+  const focusNodeIds = new Set<string>([selectedMedicineId, selectedNodeId]);
+  const visibleEdges =
+    mode === "overview"
+      ? graphEdges.filter((edge) => !edge.scripted || addedEvidence)
+      : graphEdges.filter((edge) => {
+          if (edge.scripted && !addedEvidence) {
+            return false;
+          }
+
+          return focusEdgeIds.has(edge.id);
+        });
+
+  for (const edge of visibleEdges) {
+    focusNodeIds.add(edge.from);
+    focusNodeIds.add(edge.to);
+  }
+
   const visibleNodes = graphNodes
     .filter((node) => node.id !== scriptedSourceId || addedEvidence)
-    .filter((node) => mode === "overview" || activePath.has(node.id) || node.id === selectedNodeId);
+    .filter((node) => mode === "overview" || focusNodeIds.has(node.id));
   const byId = new Map(visibleNodes.map((node) => [node.id, node]));
-  const visibleEdges = graphEdges.filter(
-    (edge) => (!edge.scripted || addedEvidence) && byId.has(edge.from) && byId.has(edge.to),
-  );
+  const drawableEdges = visibleEdges.filter((edge) => byId.has(edge.from) && byId.has(edge.to));
   const hoveredNode = hoveredNodeId ? byId.get(hoveredNodeId) : null;
   const overviewLayout = buildOverviewLayout(visibleNodes);
   const hoveredMedicineId = hoveredNode?.kind === "medicine" ? hoveredNode.id : null;
@@ -614,12 +668,14 @@ function MedicineRiskGraph({
     ? new Set(medicineSupplyChainEdges[hoveredMedicineId] ?? [])
     : null;
   const hoveredMedicineNodeIds = new Set<string>();
-  const criticalMedicineEdgeIds = new Set(medicineSupplyChainEdges[selectedMedicineId] ?? []);
+  const actionEdgeIds = new Set(
+    graphEdges.filter((edge) => edge.actionPath).map((edge) => edge.id),
+  );
 
   if (hoveredMedicineId && hoveredMedicineEdgeIds) {
     hoveredMedicineNodeIds.add(hoveredMedicineId);
 
-    for (const edge of visibleEdges) {
+    for (const edge of drawableEdges) {
       if (!hoveredMedicineEdgeIds.has(edge.id)) {
         continue;
       }
@@ -681,13 +737,13 @@ function MedicineRiskGraph({
             <stop offset="100%" stopColor="oklch(0.82 0.03 180)" stopOpacity="0.34" />
           </linearGradient>
         </defs>
-        {visibleEdges.map((edge, index) => {
-          const isActive = activePath.has(edge.from) && activePath.has(edge.to);
-          const isCriticalMedicineEdge = criticalMedicineEdgeIds.has(edge.id);
+        {drawableEdges.map((edge, index) => {
+          const isActive = Boolean(edge.actionPath);
+          const isActionEdge = actionEdgeIds.has(edge.id);
           const isHoveredMedicineEdge = Boolean(hoveredMedicineEdgeIds?.has(edge.id));
-          const edgeStyle = {
+          const edgeStyle = riskStyleFor(edge, {
             "--link-delay": `${Math.min(index * 6, 160)}ms`,
-          } as CSSProperties;
+          } as CSSProperties);
 
           return (
             <path
@@ -695,7 +751,7 @@ function MedicineRiskGraph({
                 "medicine-risk-link",
                 `risk-${edge.risk}`,
                 isActive && "is-active",
-                isCriticalMedicineEdge && "is-critical-chain",
+                isActionEdge && "is-critical-chain",
                 isHoveredMedicineEdge && "is-hover-trace",
                 Boolean(hoveredMedicineEdgeIds && !isHoveredMedicineEdge) && "is-hover-muted",
                 edge.scripted && "is-scripted",
@@ -711,14 +767,14 @@ function MedicineRiskGraph({
       {visibleNodes.map((node, index) => {
         const point = pointFor(node);
         const isActive = activePath.has(node.id);
-        const isDimmed = mode === "focused" && !isActive && node.id !== selectedMedicineId;
+        const isDimmed = mode === "focused" && !isActive && !node.actionPath;
         const isSource = node.kind === "source";
         const isHoveredMedicineNode = hoveredMedicineNodeIds.has(node.id);
-        const nodeStyle = {
+        const nodeStyle = riskStyleFor(node, {
           "--node-delay": `${Math.min(index * 10, 220)}ms`,
           left: `${point.x}%`,
           top: `${point.y}%`,
-        } as CSSProperties;
+        } as CSSProperties);
 
         return (
           <button
@@ -728,6 +784,7 @@ function MedicineRiskGraph({
               `node-${node.kind}`,
               `risk-${node.risk}`,
               isActive && "is-active-path",
+              node.actionPath && "is-action-path",
               isDimmed && "is-dimmed",
               Boolean(hoveredMedicineId && isHoveredMedicineNode) && "is-hover-trace",
               Boolean(hoveredMedicineId && !isHoveredMedicineNode) && "is-hover-muted",
@@ -775,6 +832,8 @@ function HoverPreview({
   node: GraphNode;
   point: { x: number; y: number };
 }) {
+  const score = riskScoreFor(node);
+
   return (
     <div
       className={cn("graph-hover-preview", `risk-${node.risk}`, mode === "focused" && "is-focused")}
@@ -783,9 +842,11 @@ function HoverPreview({
         top: `${Math.max(point.y - 9, 12)}%`,
       }}
     >
-      <span>{node.kind}</span>
+      <span>
+        {node.kind} · risk {score}
+      </span>
       <strong>{node.label}</strong>
-      <p>{node.summary}</p>
+      <p>{node.riskReason ?? node.summary}</p>
     </div>
   );
 }
@@ -796,23 +857,34 @@ function RiskSidePanel({
   details,
   evidenceCount,
   investigationState,
-  mode,
   node,
   onBackToOverview,
   onStartInvestigation,
+  viewMode,
 }: {
   addedEvidence: boolean;
   confidence: string;
   details: NodeDetails[string];
   evidenceCount: number;
   investigationState: "complete" | "idle" | "running";
-  mode: GraphMode;
   node: GraphNode;
   onBackToOverview: () => void;
   onStartInvestigation: () => void;
+  viewMode: ViewMode;
 }) {
   const isSource = node.kind === "source";
   const primarySource = details.sources[0];
+
+  if (viewMode === "investigating" || viewMode === "report-ready") {
+    return (
+      <InvestigationPanel
+        addedEvidence={addedEvidence}
+        investigationState={investigationState}
+        onBackToOverview={onBackToOverview}
+        viewMode={viewMode}
+      />
+    );
+  }
 
   return (
     <aside className="risk-side-panel" aria-label="Risk Profile and node investigation">
@@ -821,7 +893,7 @@ function RiskSidePanel({
           <ChevronLeft aria-hidden size={15} />
           Network
         </button>
-        <span>{mode === "overview" ? "Overview" : "Focused graph"}</span>
+        <span>Node evidence</span>
       </div>
 
       <section className="risk-profile-block">
@@ -836,7 +908,7 @@ function RiskSidePanel({
         <div className="risk-score-row">
           <div>
             <span>Availability risk</span>
-            <strong>{node.id === selectedMedicineId ? (node.metric ?? "87") : node.risk}</strong>
+            <strong>{riskScoreFor(node)}</strong>
           </div>
           <div>
             <span>Confidence</span>
@@ -924,6 +996,114 @@ function RiskSidePanel({
           <Bot aria-hidden size={15} />
           <span>Ask agent to evaluate evidence relevance...</span>
         </div>
+      </section>
+
+      <InvestigationTimeline
+        addedEvidence={addedEvidence}
+        investigationState={investigationState}
+      />
+    </aside>
+  );
+}
+
+function InvestigationPanel({
+  addedEvidence,
+  investigationState,
+  onBackToOverview,
+  viewMode,
+}: {
+  addedEvidence: boolean;
+  investigationState: "complete" | "idle" | "running";
+  onBackToOverview: () => void;
+  viewMode: ViewMode;
+}) {
+  const toolCalls = [
+    "Inspect FDA shortage evidence",
+    "Check supplier-level constraints",
+    "Search newer API-risk sources",
+    "Add supporting evidence",
+    "Prepare report context",
+  ];
+  const isReportReady = viewMode === "report-ready";
+
+  return (
+    <aside
+      className={cn("risk-side-panel", "investigation-panel", isReportReady && "is-report-ready")}
+      aria-label="AI graph investigation"
+    >
+      <div className="risk-panel-head">
+        <button type="button" onClick={onBackToOverview}>
+          <ChevronLeft aria-hidden size={15} />
+          Network
+        </button>
+        <span>{isReportReady ? "Report context ready" : "AI investigation"}</span>
+      </div>
+
+      <section className="risk-profile-block investigation-brief">
+        <div className="risk-profile-title">
+          <span className={cn("risk-dot", isReportReady ? "risk-watch" : "risk-critical")} />
+          <div>
+            <p>Graph Intelligence</p>
+            <h1>{isReportReady ? "Report context prepared" : "Investigating action path"}</h1>
+          </div>
+        </div>
+        <p className="risk-panel-copy">
+          {isReportReady
+            ? "Evidence, risk path, and recommended action are ready for the hospital report module."
+            : "The agent is checking the mapped shortage evidence and looking for one supporting source."}
+        </p>
+      </section>
+
+      <section className="risk-panel-section">
+        <h2>Tool Calls</h2>
+        <div className="tool-call-list">
+          {toolCalls.map((toolCall, index) => {
+            const isDone = isReportReady || index < 3 || (addedEvidence && index < 4);
+            const isRunning = investigationState === "running" && !isDone && index === 3;
+
+            return (
+              <article
+                className={cn("tool-call-item", isDone && "is-done", isRunning && "is-running")}
+                key={toolCall}
+              >
+                <span>
+                  {isDone ? (
+                    <CheckCircle2 aria-hidden size={14} />
+                  ) : isRunning ? (
+                    <Loader2 aria-hidden size={14} />
+                  ) : (
+                    <Bot aria-hidden size={14} />
+                  )}
+                </span>
+                <p>{toolCall}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="risk-panel-section">
+        <h2>{isReportReady ? "Report Placeholder" : "Agent Notes"}</h2>
+        {isReportReady ? (
+          <div className="report-ready-box">
+            <strong>Hospital report ready to generate</strong>
+            <p>
+              The future report can use the action path, mapped evidence, supporting API source, and
+              recommended procurement action.
+            </p>
+          </div>
+        ) : (
+          <div className="agent-message-list">
+            <article>
+              <Bot aria-hidden size={15} />
+              <p>Action path remains FDA shortage to Accord / Intas GMP constraint.</p>
+            </article>
+            <article>
+              <FileSearch aria-hidden size={15} />
+              <p>Searching for one supporting API source without creating a second alert path.</p>
+            </article>
+          </div>
+        )}
       </section>
 
       <InvestigationTimeline

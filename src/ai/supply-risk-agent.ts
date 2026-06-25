@@ -7,6 +7,8 @@ import {
   type InferAgentUIMessage,
 } from "ai";
 
+import { readServerEnv } from "#/env";
+
 import { buildSupplyRiskAgentInstructions } from "./prompts";
 import {
   createSupplyRiskAgentTools,
@@ -30,7 +32,7 @@ export type SupplyRiskAgentUIResponseOptions = CreateSupplyRiskAgentOptions & {
 };
 
 export function getSupplyRiskAgentModelId(
-  modelId: string | undefined = process.env.SUNSTEAD_AI_MODEL,
+  modelId: string | undefined = readServerEnv().SUNSTEAD_AI_MODEL,
 ) {
   return (modelId || defaultSupplyRiskAgentModel) as GatewayModelId;
 }

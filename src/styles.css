@@ -3868,7 +3868,11 @@ blockquote footer {
   vector-effect: non-scaling-stroke;
 }
 
-.medicine-risk-link.risk-critical,
+.medicine-risk-link.risk-critical {
+  opacity: var(--risk-alpha, 0.5);
+  stroke: url("#sanitas-critical-link");
+}
+
 .medicine-risk-link.is-active {
   stroke: url("#sanitas-critical-link");
 }
@@ -3885,6 +3889,10 @@ blockquote footer {
   filter: drop-shadow(0 0 7px oklch(0.66 0.24 26 / 74%));
   opacity: 0.92;
   stroke-width: 0.42;
+}
+
+.medicine-risk-link:not(.is-active) {
+  opacity: var(--risk-alpha, 0.46);
 }
 
 .medicine-risk-graph.has-medicine-hover .medicine-risk-link.is-hover-muted {
@@ -3943,13 +3951,25 @@ blockquote footer {
 }
 
 .medicine-risk-node.is-dimmed {
-  opacity: 0.18;
+  opacity: 0.42;
   pointer-events: auto;
-  transform: translate(-50%, -50%) scale(0.82);
+  transform: translate(-50%, -50%) scale(0.9);
 }
 
 .medicine-risk-node.is-active-path {
   opacity: 1;
+}
+
+.medicine-risk-node.is-action-path {
+  z-index: 14;
+  border-color: oklch(0.66 0.24 26 / 76%);
+  background:
+    radial-gradient(circle at 18% 20%, oklch(0.66 0.24 26 / 24%), transparent 5.6rem),
+    oklch(0.16 0.026 205 / 93%);
+  box-shadow:
+    0 0 0 1px oklch(0.66 0.24 26 / 20%),
+    0 0 30px oklch(0.66 0.24 26 / 22%),
+    0 20px 60px oklch(0.04 0.012 230 / 56%);
 }
 
 .medicine-risk-graph.has-medicine-hover .medicine-risk-node.is-hover-muted {
@@ -4010,7 +4030,7 @@ blockquote footer {
 }
 
 .medicine-risk-node.risk-critical {
-  border-color: oklch(0.66 0.24 26 / 72%);
+  border-color: oklch(0.66 0.24 26 / var(--risk-alpha, 0.55));
 }
 
 .medicine-risk-node.risk-critical .node-icon,
@@ -4019,11 +4039,11 @@ blockquote footer {
 }
 
 .medicine-risk-node.risk-elevated {
-  border-color: oklch(0.75 0.16 62 / 48%);
+  border-color: oklch(0.75 0.16 62 / var(--risk-alpha, 0.5));
 }
 
 .medicine-risk-node.risk-watch {
-  border-color: oklch(0.72 0.12 174 / 38%);
+  border-color: oklch(0.72 0.12 174 / var(--risk-alpha, 0.42));
 }
 
 .medicine-risk-node.risk-stable {
@@ -4076,6 +4096,10 @@ blockquote footer {
 .medicine-risk-node.is-new-evidence {
   animation: graph-fade-in 260ms ease-out backwards;
   animation-delay: var(--node-delay, 0ms);
+  border-color: oklch(0.72 0.12 174 / 44%);
+  box-shadow:
+    0 0 0 1px oklch(0.72 0.12 174 / 14%),
+    0 16px 42px oklch(0.04 0.012 230 / 46%);
 }
 
 .medicine-risk-graph.is-focused .medicine-risk-node:not(.node-source) {
@@ -4303,6 +4327,14 @@ blockquote footer {
   text-transform: uppercase;
 }
 
+.graph-hover-preview.risk-critical {
+  border-color: oklch(0.66 0.24 26 / 52%);
+}
+
+.graph-hover-preview.risk-elevated {
+  border-color: oklch(0.75 0.16 62 / 44%);
+}
+
 .graph-hover-preview strong {
   display: block;
   font-size: 0.86rem;
@@ -4337,6 +4369,16 @@ blockquote footer {
   backdrop-filter: blur(18px);
 }
 
+.investigation-panel {
+  border-color: oklch(0.72 0.05 190 / 42%);
+}
+
+.investigation-brief {
+  background:
+    radial-gradient(circle at 14% 20%, oklch(0.66 0.24 26 / 12%), transparent 6rem),
+    oklch(0.13 0.018 205 / 72%);
+}
+
 .risk-panel-head,
 .risk-profile-title,
 .risk-score-row,
@@ -4345,6 +4387,72 @@ blockquote footer {
 .agent-input {
   display: flex;
   align-items: center;
+}
+
+.agent-message-list,
+.tool-call-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.agent-message-list article,
+.tool-call-item {
+  display: flex;
+  gap: 0.58rem;
+  align-items: flex-start;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.1 0.015 205 / 48%);
+  padding: 0.62rem;
+}
+
+.agent-message-list svg,
+.tool-call-item span {
+  flex: 0 0 auto;
+  color: var(--sanitas-blue);
+}
+
+.tool-call-item span {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 999px;
+}
+
+.tool-call-item p,
+.agent-message-list p {
+  margin: 0;
+  color: var(--sanitas-muted);
+  font-size: 0.79rem;
+  line-height: 1.38;
+}
+
+.tool-call-item.is-done span {
+  color: var(--sanitas-watch);
+}
+
+.tool-call-item.is-running span {
+  color: var(--sanitas-elevated);
+}
+
+.tool-call-item.is-running svg {
+  animation: spin 900ms linear infinite;
+}
+
+.report-ready-box {
+  border: 1px solid oklch(0.72 0.12 174 / 36%);
+  border-radius: 8px;
+  background: oklch(0.18 0.045 174 / 28%);
+  padding: 0.72rem;
+}
+
+.report-ready-box strong {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: oklch(0.82 0.1 174);
+  font-size: 0.86rem;
 }
 
 .risk-panel-head {
