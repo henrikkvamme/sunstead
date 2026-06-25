@@ -47,6 +47,7 @@ export type SupplyRiskReportPreview = {
   headlineFinding: string;
   id: string;
   medicineId: string;
+  pdfUrl: string;
   recommendedAction: {
     checklist: string[];
     summary: string;
@@ -87,6 +88,7 @@ export const carboplatinReportPreview: SupplyRiskReportPreview = {
     "Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready carboplatin supply.",
   id: "report-carboplatin-demo",
   medicineId: selectedMedicineId,
+  pdfUrl: "/reports/carboplatin-supply-risk-brief.pdf",
   recommendedAction: {
     checklist: [
       "Check approved alternatives",
@@ -947,6 +949,14 @@ export const graphEdges: GraphEdge[] = [
     id: "e-api-shortage-times-india",
     risk: "elevated",
     riskScore: 52,
+    scripted: true,
+    to: scriptedSourceId,
+  },
+  {
+    from: "event-fda-shortage",
+    id: "e-shortage-times-india-evidence",
+    risk: "elevated",
+    riskScore: 54,
     scripted: true,
     to: scriptedSourceId,
   },

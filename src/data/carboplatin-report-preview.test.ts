@@ -42,6 +42,10 @@ describe("carboplatin report preview", () => {
     expect(carboplatinReportPreview.evidenceSourceNodeIds.indexOf(scriptedSourceId)).toBe(2);
   });
 
+  it("links to the light-mode PDF report asset", () => {
+    expect(carboplatinReportPreview.pdfUrl).toBe("/reports/carboplatin-supply-risk-brief.pdf");
+  });
+
   it("keeps caveats away from patient modeling and direct API causality", () => {
     const caveats = carboplatinReportPreview.caveats.join(" ");
 

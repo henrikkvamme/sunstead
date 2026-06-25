@@ -5,7 +5,6 @@ import {
   Bot,
   CheckCircle2,
   ChevronLeft,
-  Command,
   ExternalLink,
   Factory,
   FileSearch,
@@ -742,9 +741,14 @@ export function Dashboard() {
     }
 
     if (part.type === "data-graph-update") {
+      const insertedNodeId = part.data.addedEvidenceNodeIds.at(-1) ?? scriptedSourceId;
+
       setAddedEvidence(true);
       setPulsePath(true);
-      setInsertingNodeId(part.data.addedEvidenceNodeIds.at(-1) ?? scriptedSourceId);
+      setSelectedNodeId(insertedNodeId);
+      setPanelNodeId(insertedNodeId);
+      setExpandedNodeId(insertedNodeId);
+      setInsertingNodeId(insertedNodeId);
       window.setTimeout(() => setPulsePath(false), 1300);
       window.setTimeout(() => setInsertingNodeId(null), 2600);
       return;
@@ -903,15 +907,6 @@ export function Dashboard() {
             <ShieldAlert aria-hidden size={15} />
             {viewMode === "overview" ? "7 mapped medicines" : "87 action path"}
           </span>
-          <button
-            aria-label="Investigate evidence"
-            className="medicine-graph-investigate"
-            type="button"
-            onClick={startInvestigation}
-          >
-            <FileSearch aria-hidden size={15} />
-            <span>Investigate</span>
-          </button>
           <div className="notification-anchor" ref={notificationsRef}>
             <button
               aria-expanded={notificationsOpen}
@@ -936,14 +931,6 @@ export function Dashboard() {
               />
             ) : null}
           </div>
-          <button
-            aria-label="Open commands"
-            className="medicine-graph-icon"
-            type="button"
-            onClick={openCommandPalette}
-          >
-            <Command aria-hidden size={16} />
-          </button>
         </div>
       </nav>
 
@@ -1268,11 +1255,14 @@ function MedicineRiskGraph({
   pulsePath: boolean;
   selectedNodeId: string;
 }) {
-  const focusEdgeIds = new Set(medicineSupplyChainEdges[selectedMedicineId] ?? []);
+  const focusEdgeIds = new Set(
+    (medicineSupplyChainEdges[selectedMedicineId] ?? []).filter(
+      (edgeId) => edgeId !== "e-api-times-india-source",
+    ),
+  );
 
   if (addedEvidence) {
-    focusEdgeIds.add("e-api-shortage-signal");
-    focusEdgeIds.add("e-api-shortage-times-india");
+    focusEdgeIds.add("e-shortage-times-india-evidence");
   }
 
   const focusNodeIds = new Set<string>([selectedMedicineId, selectedNodeId]);
@@ -1487,12 +1477,12 @@ function MedicineRiskGraph({
               }
             }}
             onMouseEnter={() => {
-              if (mode !== "overview") {
+              if (mode !== "overview" || node.kind === "medicine") {
                 onHoverNode(node.id);
               }
             }}
             onMouseLeave={() => {
-              if (mode !== "overview") {
+              if (mode !== "overview" || node.kind === "medicine") {
                 onHoverNode(null);
               }
             }}
@@ -1724,9 +1714,20 @@ function InvestigationPanel({
     }
 
     const frame = window.requestAnimationFrame(() => {
+      const activeStep = panel.querySelector<HTMLElement>(".step-call-item.is-running");
+      if (!activeStep) {
+        return;
+      }
+
+      const panelRect = panel.getBoundingClientRect();
+      const stepRect = activeStep.getBoundingClientRect();
+      const bottomMargin = Math.min(180, Math.max(112, panel.clientHeight * 0.18));
+      const desiredStepBottom = panelRect.bottom - bottomMargin;
+      const delta = stepRect.bottom - desiredStepBottom;
+
       panel.scrollTo({
         behavior: "smooth",
-        top: panel.scrollHeight - panel.clientHeight,
+        top: panel.scrollTop + delta,
       });
     });
 
@@ -1797,6 +1798,7 @@ function InvestigationPanel({
               <article
                 className={cn("step-call-item", isDone && "is-done", isRunning && "is-running")}
                 key={step.id}
+                data-step-id={step.id}
               >
                 <div className="step-call-head">
                   <span>
@@ -1866,25 +1868,12 @@ function InvestigationPanel({
         </div>
       </section>
 
-      <section className="risk-panel-section">
-        <h2>{isReportReady ? "Report Preview" : "Completed Steps"}</h2>
-        {isReportReady ? (
+      {isReportReady ? (
+        <section className="risk-panel-section">
+          <h2>Report Preview</h2>
           <ReportPreview />
-        ) : (
-          <div className="agent-message-list">
-            {replayState.messages.map((message) => (
-              <article key={message.id}>
-                {message.kind === "source" ? (
-                  <FileSearch aria-hidden size={15} />
-                ) : (
-                  <Bot aria-hidden size={15} />
-                )}
-                <p>{message.text}</p>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+        </section>
+      ) : null}
 
       {addedEvidence && !isReportReady ? (
         <section className="risk-panel-section new-source-card">
@@ -1959,15 +1948,6 @@ function iconForStep(stepId: string) {
 
 function ReportPreview() {
   const report = carboplatinReportPreview;
-  const actionPathNodes = report.actionPathNodeIds
-    .map((nodeId) => graphNodes.find((node) => node.id === nodeId))
-    .filter((node): node is GraphNode => Boolean(node));
-  const evidenceSources = report.evidenceSourceNodeIds.flatMap((nodeId) => {
-    const node = graphNodes.find((candidate) => candidate.id === nodeId);
-    const source = nodeDetails[nodeId]?.sources[0];
-
-    return node ? [{ node, source }] : [];
-  });
   const statusLabel = report.status === "action-needed" ? "Action needed" : report.status;
 
   return (
@@ -1985,51 +1965,20 @@ function ReportPreview() {
 
       <p className="report-finding">{report.headlineFinding}</p>
 
-      <div className="report-path-strip" aria-label="Risk Path">
-        {actionPathNodes.map((node, index) => (
-          <span key={node.id}>
-            {index > 0 ? <em aria-hidden>{"->"}</em> : null}
-            <strong>{node.label}</strong>
-          </span>
-        ))}
-      </div>
-
-      <div className="report-evidence-grid" aria-label="Prioritized Evidence Sources">
-        {evidenceSources.map(({ node, source }) => (
-          <article key={node.id}>
-            <FileText aria-hidden size={13} />
-            <div>
-              <strong>{node.label}</strong>
-              <span>{source?.meta ?? node.summary}</span>
-            </div>
-          </article>
-        ))}
-      </div>
-
       <div className="report-action-box">
         <strong>{report.recommendedAction.title}</strong>
         <p>{report.recommendedAction.summary}</p>
       </div>
 
-      <ul className="report-checklist">
-        {report.recommendedAction.checklist.map((item) => (
-          <li key={item}>
-            <CheckCircle2 aria-hidden size={13} />
-            {item}
-          </li>
-        ))}
-      </ul>
+      <a className="report-pdf-link" href={report.pdfUrl} target="_blank" rel="noreferrer">
+        <FileText aria-hidden size={15} />
+        PDF report
+        <ExternalLink aria-hidden size={13} />
+      </a>
 
-      <div className="report-confidence">
-        <strong>{report.confidence.label} confidence</strong>
-        <p>{report.confidence.rationale}</p>
-      </div>
-
-      <div className="report-caveats">
-        {report.caveats.map((caveat) => (
-          <p key={caveat}>{caveat}</p>
-        ))}
-      </div>
+      <p className="report-pdf-note">
+        Includes evidence priority, Risk Path, operational checklist, confidence, and caveats.
+      </p>
     </div>
   );
 }

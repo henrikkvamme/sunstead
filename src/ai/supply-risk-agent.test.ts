@@ -177,13 +177,10 @@ describe("supply risk agent module", () => {
       expect(result.source.id).toBe("source-times-india-2026");
       expect(result.source.publisher).toBe("Times of India");
       expect(result.graphUpdates.nodesToHighlight).toEqual([
-        "event-api-shortage-2026",
+        "event-fda-shortage",
         "source-times-india-2026",
       ]);
-      expect(result.graphUpdates.edgesToHighlight).toEqual([
-        "e-api-shortage-signal",
-        "e-api-shortage-times-india",
-      ]);
+      expect(result.graphUpdates.edgesToHighlight).toEqual(["e-shortage-times-india-evidence"]);
       expect(result.graphUpdates.actionPathUnchanged).toBe(true);
       expect(result.reportContextReady).toBe(true);
       expect(result.caveat).toContain("does not prove the direct cause");

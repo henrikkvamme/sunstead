@@ -1,11 +1,6 @@
 import { createUIMessageStream, createUIMessageStreamResponse, type UIMessage } from "ai";
 
-import {
-  graphNodes,
-  investigationTargetId,
-  nodeDetails,
-  scriptedSourceId,
-} from "#/data/carboplatin-risk-scenario";
+import { graphNodes, nodeDetails, scriptedSourceId } from "#/data/carboplatin-risk-scenario";
 
 import {
   buildCarboplatinDemoStreamingSystemPrompt,
@@ -300,9 +295,9 @@ function reasoningBeforeTool(toolId: string) {
     "insert-times-india-node":
       "The source is useful as evidence, so the next operation is a graph insertion rather than a report-only note.",
     "connect-api-source":
-      "Now the inserted source needs a bounded connection to API-risk context, not to the direct FDA shortage edge.",
+      "Now the inserted article needs a bounded evidence edge to FDA current shortage, without claiming it caused the shortage.",
     "highlight-delta":
-      "I am highlighting only the new evidence satellite and its API-risk connector so the action path remains stable.",
+      "I am highlighting the new evidence satellite and its FDA shortage evidence edge so the action path remains stable.",
     "prepare-report-context":
       "The graph has enough context for the report handoff: direct evidence, supplier constraint, supporting source, and caveat.",
     "validate-action-path":
@@ -329,9 +324,9 @@ function reasoningAfterTool(toolId: string) {
     "insert-times-india-node":
       "The new source node can now be clicked in the graph and opened as the article the agent found.",
     "connect-api-source":
-      "The edge placement keeps the source attached to API-risk context and leaves FDA/ASHP as direct evidence anchors.",
+      "The edge placement makes the article visible as contextual evidence under FDA current shortage while preserving FDA/ASHP as direct anchors.",
     "highlight-delta":
-      "The highlighted delta is intentionally small: source-times-india-2026 and event-api-shortage-2026 only.",
+      "The highlighted delta is intentionally small: source-times-india-2026 and its FDA shortage evidence edge only.",
     "prepare-report-context":
       "The report context is ready to explain evidence, risk path, caveat, and the recommended supplier-readiness action.",
     "validate-action-path":
@@ -395,7 +390,7 @@ function executeDemoTool(toolName: string, input: Record<string, unknown>) {
       connected: true,
       edges: carboplatinManagedInvestigationDemoResult.graphUpdates.edgesToHighlight,
       sourceId: scriptedSourceId,
-      targetId: investigationTargetId,
+      targetId: "event-fda-shortage",
     };
   }
 

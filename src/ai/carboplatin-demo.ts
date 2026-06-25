@@ -1,5 +1,4 @@
 import {
-  investigationTargetId,
   nodeDetails,
   scriptedSourceId,
   selectedMedicineId,
@@ -13,8 +12,8 @@ export type ManagedInvestigationDemoResult = {
   caveat: string;
   graphUpdates: {
     actionPathUnchanged: true;
-    edgesToHighlight: ["e-api-shortage-signal", "e-api-shortage-times-india"];
-    nodesToHighlight: [typeof investigationTargetId, typeof scriptedSourceId];
+    edgesToHighlight: ["e-shortage-times-india-evidence"];
+    nodesToHighlight: ["event-fda-shortage", typeof scriptedSourceId];
   };
   reportContextReady: true;
   source: {
@@ -61,7 +60,7 @@ export type CarboplatinDemoReplayStep = {
 };
 
 export type CarboplatinDemoReplayState = {
-  addedEvidenceNodeIds: [typeof investigationTargetId, typeof scriptedSourceId];
+  addedEvidenceNodeIds: ["event-fda-shortage", typeof scriptedSourceId];
   caveat: string;
   graphUpdates: ManagedInvestigationDemoResult["graphUpdates"];
   messages: CarboplatinDemoMessage[];
@@ -92,8 +91,8 @@ export const carboplatinManagedInvestigationDemoResult: ManagedInvestigationDemo
     relevance: "Supports a 2026 upstream API-risk signal for platinum chemotherapy medicines.",
   },
   graphUpdates: {
-    nodesToHighlight: [investigationTargetId, scriptedSourceId],
-    edgesToHighlight: ["e-api-shortage-signal", "e-api-shortage-times-india"],
+    nodesToHighlight: ["event-fda-shortage", scriptedSourceId],
+    edgesToHighlight: ["e-shortage-times-india-evidence"],
     actionPathUnchanged: true,
   },
   reportContextReady: true,
@@ -173,7 +172,8 @@ export const carboplatinDemoReplaySteps: CarboplatinDemoReplayStep[] = [
     durationMs: 2700,
     workingNote:
       "This is the graph mutation point. I will add the article as a supporting Evidence Satellite, not as a new red action path.",
-    result: "Inserted and connected source-times-india-2026 through the API-risk context node.",
+    result:
+      "Inserted and connected source-times-india-2026 as contextual evidence on the FDA shortage node.",
     revealsEvidence: true,
     tools: [
       {
@@ -192,11 +192,11 @@ export const carboplatinDemoReplaySteps: CarboplatinDemoReplayStep[] = [
         toolName: "connectGraphEvidence",
         label: "Connect source to API risk",
         input: {
-          edgeIds: ["e-api-shortage-signal", "e-api-shortage-times-india"],
+          edgeIds: ["e-shortage-times-india-evidence"],
           sourceId: scriptedSourceId,
-          targetId: investigationTargetId,
+          targetId: "event-fda-shortage",
         },
-        result: "Connected the source to API shortage context.",
+        result: "Connected the source as contextual evidence on FDA current shortage.",
       },
       {
         id: "highlight-delta",
@@ -320,7 +320,7 @@ export function getCarboplatinDemoReplayState(
             : "agent",
           text: step.result,
         })),
-    addedEvidenceNodeIds: [investigationTargetId, scriptedSourceId],
+    addedEvidenceNodeIds: ["event-fda-shortage", scriptedSourceId],
     graphUpdates: carboplatinManagedInvestigationDemoResult.graphUpdates,
     source: {
       ...carboplatinManagedInvestigationDemoResult.source,
