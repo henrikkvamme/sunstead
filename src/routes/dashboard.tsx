@@ -30,6 +30,18 @@ import {
   type ReactNode,
 } from "react";
 
+import {
+  graphEdges,
+  graphNodes,
+  investigationTargetId,
+  medicineSupplyChainEdges,
+  nodeDetails,
+  riskPathBase,
+  scriptedSourceId,
+  selectedMedicineId,
+  selectedMedicineSlug,
+} from "#/data/carboplatin-risk-scenario";
+import type { GraphEdge, GraphNode, NodeDetails } from "#/data/carboplatin-risk-scenario";
 import { cn } from "#/lib/cn";
 
 export const Route = createFileRoute("/dashboard")({
@@ -37,37 +49,6 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type GraphMode = "focused" | "overview";
-type RiskLevel = "critical" | "elevated" | "stable" | "watch";
-
-type GraphNode = {
-  detail?: { x: number; y: number };
-  id: string;
-  kind: "component" | "event" | "medicine" | "place" | "source" | "supplier";
-  label: string;
-  metric?: string;
-  overview: { x: number; y: number };
-  risk: RiskLevel;
-  summary: string;
-};
-
-type GraphEdge = {
-  from: string;
-  id: string;
-  risk: RiskLevel;
-  scripted?: true;
-  to: string;
-};
-
-type NodeDetails = Record<
-  string,
-  {
-    confidence: string;
-    facts: string[];
-    prompts: string[];
-    sources: { meta: string; title: string; url: string }[];
-    whyItMatters: string;
-  }
->;
 
 type CommandPaletteItem = {
   action: () => void;
@@ -78,668 +59,6 @@ type CommandPaletteItem = {
   token: string;
 };
 
-const selectedMedicineId = "med-meropenem";
-const selectedMedicineSlug = "meropenem-iv";
-const scriptedSourceId = "source-newer-port";
-
-const riskPathBase = [
-  "med-meropenem",
-  "component-meropenem-api",
-  "supplier-aster",
-  "place-vadodara",
-  "event-gujarat-flood",
-  "source-monsoon",
-  "source-export",
-];
-
-const graphNodes: GraphNode[] = [
-  {
-    detail: { x: 10, y: 50 },
-    id: selectedMedicineId,
-    kind: "medicine",
-    label: "Meropenem IV",
-    metric: "87",
-    overview: { x: 50, y: 50 },
-    risk: "critical",
-    summary: "Carbapenem antibiotic with concentrated upstream API exposure.",
-  },
-  {
-    id: "med-piperacillin",
-    kind: "medicine",
-    label: "Piperacillin/Tazobactam",
-    metric: "64",
-    overview: { x: 67, y: 38 },
-    risk: "elevated",
-    summary: "Shared beta-lactam inputs and tender dependency.",
-  },
-  {
-    id: "med-vancomycin",
-    kind: "medicine",
-    label: "Vancomycin IV",
-    metric: "59",
-    overview: { x: 69, y: 60 },
-    risk: "elevated",
-    summary: "Sterile fill-finish capacity is tightening.",
-  },
-  {
-    id: "med-amoxicillin",
-    kind: "medicine",
-    label: "Amoxicillin oral",
-    metric: "42",
-    overview: { x: 50, y: 72 },
-    risk: "watch",
-    summary: "Seasonal demand pressure, supplier coverage remains adequate.",
-  },
-  {
-    id: "med-propofol",
-    kind: "medicine",
-    label: "Propofol 10 mg/ml",
-    metric: "39",
-    overview: { x: 31, y: 60 },
-    risk: "watch",
-    summary: "Packaging and cold-chain signals require monitoring.",
-  },
-  {
-    id: "med-insulin",
-    kind: "medicine",
-    label: "Insulin glargine",
-    metric: "18",
-    overview: { x: 31, y: 38 },
-    risk: "stable",
-    summary: "Redundant suppliers and stable demand signals.",
-  },
-  {
-    id: "med-saline",
-    kind: "medicine",
-    label: "Saline bags",
-    metric: "21",
-    overview: { x: 50, y: 28 },
-    risk: "stable",
-    summary: "Broad manufacturing base with low active risk.",
-  },
-  {
-    detail: { x: 25, y: 50 },
-    id: "component-meropenem-api",
-    kind: "component",
-    label: "Meropenem API",
-    metric: "single source",
-    overview: { x: 28, y: 24 },
-    risk: "critical",
-    summary: "Active ingredient depends on one approved upstream route.",
-  },
-  {
-    id: "component-beta-lactam",
-    kind: "component",
-    label: "Beta-lactam intermediate",
-    metric: "shared",
-    overview: { x: 25, y: 77 },
-    risk: "elevated",
-    summary: "Shared input touches three medicines in the network.",
-  },
-  {
-    id: "component-sterile-vial",
-    kind: "component",
-    label: "Sterile vial line",
-    overview: { x: 27, y: 50 },
-    risk: "watch",
-    summary: "Fill-finish capacity affects IV presentations.",
-  },
-  {
-    id: "component-cold-chain",
-    kind: "component",
-    label: "Cold-chain packaging",
-    overview: { x: 75, y: 74 },
-    risk: "watch",
-    summary: "Temperature-controlled packaging dependency for anaesthetic supply.",
-  },
-  {
-    id: "component-glass-vial",
-    kind: "component",
-    label: "Borosilicate glass",
-    overview: { x: 41, y: 18 },
-    risk: "stable",
-    summary: "Shared sterile container material with broad supplier coverage.",
-  },
-  {
-    id: "component-iv-tubing",
-    kind: "component",
-    label: "IV tubing resin",
-    overview: { x: 37, y: 87 },
-    risk: "stable",
-    summary: "Commodity input for infusion sets with multiple approved sources.",
-  },
-  {
-    detail: { x: 40, y: 50 },
-    id: "supplier-aster",
-    kind: "supplier",
-    label: "Aster Pharma",
-    metric: "91%",
-    overview: { x: 16, y: 34 },
-    risk: "critical",
-    summary: "Approved supplier carries most of the Meropenem API path.",
-  },
-  {
-    id: "supplier-nordchem",
-    kind: "supplier",
-    label: "NordChem AB",
-    metric: "backup",
-    overview: { x: 15, y: 66 },
-    risk: "watch",
-    summary: "Backup supplier exists, but qualification is not complete.",
-  },
-  {
-    id: "supplier-sterifill",
-    kind: "supplier",
-    label: "SteriFill GmbH",
-    overview: { x: 80, y: 64 },
-    risk: "stable",
-    summary: "Stable sterile fill-finish supplier shared across products.",
-  },
-  {
-    id: "supplier-packline",
-    kind: "supplier",
-    label: "PackLine Oy",
-    overview: { x: 90, y: 68 },
-    risk: "stable",
-    summary: "Packaging supplier with redundant capacity.",
-  },
-  {
-    id: "supplier-glassworks",
-    kind: "supplier",
-    label: "GlassWorks Europe",
-    overview: { x: 66, y: 18 },
-    risk: "stable",
-    summary: "Secondary glass vial source for sterile presentations.",
-  },
-  {
-    id: "supplier-medpack",
-    kind: "supplier",
-    label: "MedPack Baltics",
-    overview: { x: 21, y: 92 },
-    risk: "stable",
-    summary: "Secondary packaging supplier for commodity infusion components.",
-  },
-  {
-    detail: { x: 55, y: 50 },
-    id: "place-vadodara",
-    kind: "place",
-    label: "Vadodara facility",
-    metric: "GJ",
-    overview: { x: 12, y: 18 },
-    risk: "critical",
-    summary: "Manufacturing place intersects the active flood warning.",
-  },
-  {
-    id: "place-mundra-port",
-    kind: "place",
-    label: "Mundra port",
-    metric: "route",
-    overview: { x: 12, y: 84 },
-    risk: "elevated",
-    summary: "Export route adds lead-time sensitivity for hospital tenders.",
-  },
-  {
-    id: "place-eu-tender",
-    kind: "place",
-    label: "EU hospital tenders",
-    overview: { x: 82, y: 27 },
-    risk: "watch",
-    summary: "Tender qualification limits substitution speed.",
-  },
-  {
-    id: "place-frankfurt-hub",
-    kind: "place",
-    label: "Frankfurt air hub",
-    overview: { x: 88, y: 48 },
-    risk: "stable",
-    summary: "European distribution hub with no active availability risk.",
-  },
-  {
-    id: "place-nordic-buffer",
-    kind: "place",
-    label: "Nordic buffer stock",
-    overview: { x: 58, y: 86 },
-    risk: "watch",
-    summary: "Regional buffer is adequate but not enough for prolonged API delay.",
-  },
-  {
-    id: "place-copenhagen-depot",
-    kind: "place",
-    label: "Copenhagen depot",
-    overview: { x: 69, y: 78 },
-    risk: "stable",
-    summary: "Local distribution depot with normal release cadence.",
-  },
-  {
-    detail: { x: 70, y: 50 },
-    id: "event-gujarat-flood",
-    kind: "event",
-    label: "Gujarat flood warning",
-    metric: "48h",
-    overview: { x: 32, y: 12 },
-    risk: "critical",
-    summary: "Severe weather signal overlaps the active supplier place.",
-  },
-  {
-    id: "event-seasonal-demand",
-    kind: "event",
-    label: "Respiratory season",
-    overview: { x: 84, y: 82 },
-    risk: "watch",
-    summary: "Demand pressure is present but not the active driver.",
-  },
-  {
-    id: "event-tender-renewal",
-    kind: "event",
-    label: "Tender renewal window",
-    overview: { x: 91, y: 34 },
-    risk: "watch",
-    summary: "Contract timing can slow approved supplier substitution.",
-  },
-  {
-    id: "event-theatre-demand",
-    kind: "event",
-    label: "Surgery schedule lift",
-    overview: { x: 72, y: 88 },
-    risk: "stable",
-    summary: "Planned procedure demand remains inside expected range.",
-  },
-  {
-    detail: { x: 86, y: 38 },
-    id: "source-monsoon",
-    kind: "source",
-    label: "Monsoon bulletin",
-    metric: "public",
-    overview: { x: 15, y: 8 },
-    risk: "critical",
-    summary: "Evidence Satellite supporting the flood warning.",
-  },
-  {
-    detail: { x: 86, y: 58 },
-    id: "source-export",
-    kind: "source",
-    label: "Export delay report",
-    metric: "source",
-    overview: { x: 10, y: 52 },
-    risk: "elevated",
-    summary: "Evidence Satellite supporting route sensitivity.",
-  },
-  {
-    id: "source-shortage-registry",
-    kind: "source",
-    label: "Shortage registry",
-    overview: { x: 93, y: 16 },
-    risk: "stable",
-    summary: "No public shortage notice currently visible in the demo data.",
-  },
-  {
-    id: "source-procurement",
-    kind: "source",
-    label: "Procurement note",
-    overview: { x: 74, y: 10 },
-    risk: "watch",
-    summary: "Internal procurement evidence for tender constraints.",
-  },
-  {
-    id: "source-buffer-report",
-    kind: "source",
-    label: "Buffer report",
-    overview: { x: 46, y: 92 },
-    risk: "stable",
-    summary: "Internal stock coverage signal for regional buffer.",
-  },
-  {
-    id: "source-release-calendar",
-    kind: "source",
-    label: "Release calendar",
-    overview: { x: 91, y: 88 },
-    risk: "stable",
-    summary: "Internal release schedule for commodity component replenishment.",
-  },
-  {
-    detail: { x: 86, y: 76 },
-    id: scriptedSourceId,
-    kind: "source",
-    label: "Port operations update",
-    metric: "new",
-    overview: { x: 18, y: 92 },
-    risk: "elevated",
-    summary: "Scripted new evidence added by the Graph Intelligence Agent.",
-  },
-];
-
-const graphEdges: GraphEdge[] = [
-  {
-    from: selectedMedicineId,
-    id: "e-meropenem-api",
-    risk: "critical",
-    to: "component-meropenem-api",
-  },
-  { from: selectedMedicineId, id: "e-meropenem-vial", risk: "watch", to: "component-sterile-vial" },
-  { from: "med-piperacillin", id: "e-pip-shared", risk: "elevated", to: "component-beta-lactam" },
-  { from: "med-amoxicillin", id: "e-amox-shared", risk: "watch", to: "component-beta-lactam" },
-  { from: "med-vancomycin", id: "e-vanco-vial", risk: "elevated", to: "component-sterile-vial" },
-  { from: "med-propofol", id: "e-propofol-fill", risk: "watch", to: "supplier-sterifill" },
-  { from: "med-propofol", id: "e-propofol-cold-chain", risk: "watch", to: "component-cold-chain" },
-  { from: "med-insulin", id: "e-insulin-eu", risk: "stable", to: "place-eu-tender" },
-  { from: "med-saline", id: "e-saline-fill", risk: "stable", to: "supplier-sterifill" },
-  { from: "med-saline", id: "e-saline-glass", risk: "stable", to: "component-glass-vial" },
-  { from: "med-saline", id: "e-saline-tubing", risk: "stable", to: "component-iv-tubing" },
-  { from: "component-meropenem-api", id: "e-api-aster", risk: "critical", to: "supplier-aster" },
-  { from: "component-beta-lactam", id: "e-shared-aster", risk: "elevated", to: "supplier-aster" },
-  {
-    from: "component-sterile-vial",
-    id: "e-vial-sterifill",
-    risk: "watch",
-    to: "supplier-sterifill",
-  },
-  {
-    from: "component-sterile-vial",
-    id: "e-vial-glassworks",
-    risk: "stable",
-    to: "supplier-glassworks",
-  },
-  {
-    from: "component-cold-chain",
-    id: "e-cold-chain-packline",
-    risk: "stable",
-    to: "supplier-packline",
-  },
-  {
-    from: "component-iv-tubing",
-    id: "e-tubing-medpack",
-    risk: "stable",
-    to: "supplier-medpack",
-  },
-  { from: "supplier-aster", id: "e-aster-vadodara", risk: "critical", to: "place-vadodara" },
-  { from: "supplier-aster", id: "e-aster-mundra", risk: "elevated", to: "place-mundra-port" },
-  { from: "supplier-nordchem", id: "e-nordchem-eu", risk: "watch", to: "place-eu-tender" },
-  {
-    from: "supplier-sterifill",
-    id: "e-sterifill-frankfurt",
-    risk: "stable",
-    to: "place-frankfurt-hub",
-  },
-  {
-    from: "supplier-packline",
-    id: "e-packline-frankfurt",
-    risk: "stable",
-    to: "place-frankfurt-hub",
-  },
-  {
-    from: "supplier-medpack",
-    id: "e-medpack-copenhagen",
-    risk: "stable",
-    to: "place-copenhagen-depot",
-  },
-  { from: "place-vadodara", id: "e-vadodara-flood", risk: "critical", to: "event-gujarat-flood" },
-  { from: "place-mundra-port", id: "e-mundra-export", risk: "elevated", to: "source-export" },
-  { from: "event-gujarat-flood", id: "e-flood-monsoon", risk: "critical", to: "source-monsoon" },
-  {
-    from: "place-eu-tender",
-    id: "e-tender-registry",
-    risk: "stable",
-    to: "source-shortage-registry",
-  },
-  { from: "place-eu-tender", id: "e-tender-renewal", risk: "watch", to: "event-tender-renewal" },
-  {
-    from: "event-tender-renewal",
-    id: "e-renewal-procurement",
-    risk: "watch",
-    to: "source-procurement",
-  },
-  { from: selectedMedicineId, id: "e-meropenem-buffer", risk: "watch", to: "place-nordic-buffer" },
-  {
-    from: "place-nordic-buffer",
-    id: "e-buffer-report",
-    risk: "stable",
-    to: "source-buffer-report",
-  },
-  {
-    from: "place-copenhagen-depot",
-    id: "e-copenhagen-release",
-    risk: "stable",
-    to: "source-release-calendar",
-  },
-  { from: "event-seasonal-demand", id: "e-demand-pip", risk: "watch", to: "med-piperacillin" },
-  { from: "event-theatre-demand", id: "e-demand-propofol", risk: "stable", to: "med-propofol" },
-  {
-    from: "event-gujarat-flood",
-    id: "e-flood-newer-port",
-    risk: "elevated",
-    scripted: true,
-    to: scriptedSourceId,
-  },
-];
-
-const medicineSupplyChainEdges: Record<string, string[]> = {
-  [selectedMedicineId]: [
-    "e-meropenem-api",
-    "e-api-aster",
-    "e-aster-vadodara",
-    "e-vadodara-flood",
-    "e-flood-monsoon",
-    "e-aster-mundra",
-    "e-mundra-export",
-    "e-meropenem-vial",
-    "e-vial-sterifill",
-    "e-vial-glassworks",
-    "e-sterifill-frankfurt",
-    "e-meropenem-buffer",
-    "e-buffer-report",
-  ],
-  "med-piperacillin": [
-    "e-pip-shared",
-    "e-shared-aster",
-    "e-aster-vadodara",
-    "e-vadodara-flood",
-    "e-flood-monsoon",
-    "e-aster-mundra",
-    "e-mundra-export",
-    "e-demand-pip",
-  ],
-  "med-vancomycin": [
-    "e-vanco-vial",
-    "e-vial-sterifill",
-    "e-vial-glassworks",
-    "e-sterifill-frankfurt",
-  ],
-  "med-amoxicillin": [
-    "e-amox-shared",
-    "e-shared-aster",
-    "e-aster-vadodara",
-    "e-vadodara-flood",
-    "e-flood-monsoon",
-    "e-aster-mundra",
-    "e-mundra-export",
-  ],
-  "med-propofol": [
-    "e-propofol-fill",
-    "e-sterifill-frankfurt",
-    "e-propofol-cold-chain",
-    "e-cold-chain-packline",
-    "e-packline-frankfurt",
-    "e-demand-propofol",
-  ],
-  "med-insulin": [
-    "e-insulin-eu",
-    "e-nordchem-eu",
-    "e-tender-registry",
-    "e-tender-renewal",
-    "e-renewal-procurement",
-  ],
-  "med-saline": [
-    "e-saline-fill",
-    "e-saline-glass",
-    "e-saline-tubing",
-    "e-vial-sterifill",
-    "e-vial-glassworks",
-    "e-sterifill-frankfurt",
-    "e-tubing-medpack",
-    "e-medpack-copenhagen",
-    "e-copenhagen-release",
-  ],
-};
-
-const nodeDetails: NodeDetails = {
-  [selectedMedicineId]: {
-    confidence: "High confidence, 4 Evidence Sources",
-    facts: [
-      "Supply fragility: high",
-      "Demand pressure: stable",
-      "Evidence strength: high",
-      "Action window: 48 hours",
-    ],
-    prompts: [
-      "Find newer evidence",
-      "Explain risk path",
-      "Check demand pressure",
-      "Review alternate supplier readiness",
-    ],
-    sources: [
-      {
-        meta: "Demo source",
-        title: "Monsoon bulletin for Gujarat",
-        url: "https://mausam.imd.gov.in/",
-      },
-      {
-        meta: "Demo source",
-        title: "Export delay monitoring",
-        url: "https://www.reuters.com/world/india/",
-      },
-    ],
-    whyItMatters:
-      "Meropenem IV is used in time-sensitive hospital treatment where delayed availability can affect patient care.",
-  },
-  "component-meropenem-api": {
-    confidence: "Critical contribution",
-    facts: [
-      "Single approved API route",
-      "Backup supplier not qualified",
-      "No patient data represented",
-    ],
-    prompts: ["Find newer evidence", "Review alternate supplier readiness"],
-    sources: [
-      {
-        meta: "Internal graph",
-        title: "Approved supplier mapping",
-        url: "https://example.com/sanitas-demo",
-      },
-    ],
-    whyItMatters:
-      "The API is the upstream component that carries the active Supply Risk into Medicine Availability.",
-  },
-  "supplier-aster": {
-    confidence: "91% supplier share",
-    facts: [
-      "Primary approved manufacturer",
-      "Dependent on Vadodara facility",
-      "Backup supplier requires qualification",
-    ],
-    prompts: ["Find newer evidence", "Review alternate supplier readiness"],
-    sources: [
-      {
-        meta: "Demo source",
-        title: "Supplier qualification register",
-        url: "https://example.com/sanitas-demo",
-      },
-    ],
-    whyItMatters:
-      "Aster Pharma is the supplier link between the API and the affected manufacturing place.",
-  },
-  "place-vadodara": {
-    confidence: "High place relevance",
-    facts: [
-      "Active facility place",
-      "Weather signal overlaps facility region",
-      "Route sensitivity through Mundra port",
-    ],
-    prompts: ["Find newer evidence", "Explain risk path"],
-    sources: [
-      {
-        meta: "Demo source",
-        title: "Regional weather bulletin",
-        url: "https://mausam.imd.gov.in/",
-      },
-    ],
-    whyItMatters:
-      "This place is where the supplier exposure becomes operational for the focused medicine.",
-  },
-  "event-gujarat-flood": {
-    confidence: "3 supporting sources",
-    facts: [
-      "48 hour severe weather signal",
-      "Linked to supplier place",
-      "Availability risk level reflects medicine exposure",
-    ],
-    prompts: ["Find newer evidence", "Explain risk path"],
-    sources: [
-      {
-        meta: "Public weather",
-        title: "Monsoon bulletin for Gujarat",
-        url: "https://mausam.imd.gov.in/",
-      },
-      {
-        meta: "Logistics watch",
-        title: "Port operations monitoring",
-        url: "https://www.reuters.com/world/india/",
-      },
-    ],
-    whyItMatters:
-      "The flood warning matters because it intersects the mapped supplier path for Meropenem IV.",
-  },
-  "source-monsoon": {
-    confidence: "Primary Evidence Satellite",
-    facts: [
-      "Supports the flood warning",
-      "Public source placeholder",
-      "Opened deliberately from the panel",
-    ],
-    prompts: ["Find newer evidence"],
-    sources: [
-      {
-        meta: "Public weather",
-        title: "Monsoon bulletin for Gujarat",
-        url: "https://mausam.imd.gov.in/",
-      },
-    ],
-    whyItMatters:
-      "This Evidence Satellite supports the active event that drives the focused Risk Path.",
-  },
-  "source-export": {
-    confidence: "Secondary Evidence Satellite",
-    facts: ["Supports export route sensitivity", "Does not add a supplier-chain branch"],
-    prompts: ["Find newer evidence"],
-    sources: [
-      {
-        meta: "News monitor",
-        title: "Export delay monitoring",
-        url: "https://www.reuters.com/world/india/",
-      },
-    ],
-    whyItMatters:
-      "This source explains why lead time can change even when the supplier chain is already mapped.",
-  },
-  [scriptedSourceId]: {
-    confidence: "New evidence added",
-    facts: [
-      "Added by scripted Graph Investigation",
-      "Evidence only",
-      "Risk confidence increased modestly",
-    ],
-    prompts: ["Explain risk path", "Review alternate supplier readiness"],
-    sources: [
-      {
-        meta: "New source",
-        title: "Port operations update",
-        url: "https://www.reuters.com/world/india/",
-      },
-    ],
-    whyItMatters:
-      "The new evidence strengthens the route-risk explanation without changing the supplier chain.",
-  },
-};
-
 const kindIcons: Record<GraphNode["kind"], ReactNode> = {
   component: <FlaskConical aria-hidden size={15} />,
   event: <Waves aria-hidden size={15} />,
@@ -748,41 +67,6 @@ const kindIcons: Record<GraphNode["kind"], ReactNode> = {
   source: <FileText aria-hidden size={14} />,
   supplier: <Factory aria-hidden size={15} />,
 };
-
-function SanitasLogoMark() {
-  return (
-    <svg
-      aria-hidden
-      className="sanitas-logo-mark"
-      fill="none"
-      viewBox="0 0 32 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        className="sanitas-logo-orbit"
-        d="M5.7 13.8C8.7 5.6 22.9 3.7 27.2 9.3c3.9 5.1-4.8 11.8-15 9.8C5.3 17.7 2 13.6 5.4 9.8"
-      />
-      <rect
-        className="sanitas-logo-medicine sanitas-logo-medicine-left"
-        height="9.2"
-        rx="2.4"
-        width="8.2"
-        x="8.3"
-        y="7.3"
-      />
-      <rect
-        className="sanitas-logo-medicine sanitas-logo-medicine-right"
-        height="9.2"
-        rx="4.1"
-        width="8.2"
-        x="16.1"
-        y="7.3"
-      />
-      <path className="sanitas-logo-medicine-detail" d="M12.4 8.9v6" />
-      <circle className="sanitas-logo-risk-dot" cx="25.8" cy="8.2" r="2.1" />
-    </svg>
-  );
-}
 
 function buildOverviewLayout(nodes: GraphNode[]) {
   const points = new Map(nodes.map((node) => [node.id, { ...node.overview }]));
@@ -879,43 +163,6 @@ function writeUrlGraphMode(
   }
 
   window.history[historyMethod]({ sanitasGraphMode: mode }, "", nextUrl);
-}
-
-function buildGraphDepths(nodes: GraphNode[], edges: GraphEdge[]) {
-  const visibleIds = new Set(nodes.map((node) => node.id));
-  const adjacency = new Map<string, string[]>();
-
-  for (const node of nodes) {
-    adjacency.set(node.id, []);
-  }
-
-  for (const edge of edges) {
-    if (!visibleIds.has(edge.from) || !visibleIds.has(edge.to)) {
-      continue;
-    }
-
-    adjacency.get(edge.from)?.push(edge.to);
-    adjacency.get(edge.to)?.push(edge.from);
-  }
-
-  const depths = new Map<string, number>([[selectedMedicineId, 0]]);
-  const queue = [selectedMedicineId];
-
-  for (let index = 0; index < queue.length; index += 1) {
-    const current = queue[index];
-    const nextDepth = (depths.get(current) ?? 0) + 1;
-
-    for (const next of adjacency.get(current) ?? []) {
-      if (depths.has(next)) {
-        continue;
-      }
-
-      depths.set(next, nextDepth);
-      queue.push(next);
-    }
-  }
-
-  return depths;
 }
 
 export function Dashboard() {
@@ -1033,7 +280,7 @@ export function Dashboard() {
     }
 
     setMode("focused");
-    setSelectedNodeId("event-gujarat-flood");
+    setSelectedNodeId(investigationTargetId);
     setInvestigationState("running");
     writeUrlGraphMode("focused");
   };
@@ -1082,7 +329,12 @@ export function Dashboard() {
     <main className={cn("medicine-graph-screen", `is-${mode}`)}>
       <nav className="medicine-graph-nav" aria-label="Medicine graph controls">
         <button className="medicine-graph-brand" type="button" onClick={showOverview}>
-          <SanitasLogoMark />
+          <img
+            alt=""
+            aria-hidden
+            className="sanitas-logo-mark"
+            src="/logo-candidates/sanitas-logo-5-compact-bottle-transparent.png"
+          />
           <strong>Sanitas</strong>
         </button>
 
@@ -1102,7 +354,7 @@ export function Dashboard() {
         <div className="medicine-graph-nav-actions">
           <span className={cn("medicine-graph-risk-pill", mode === "focused" && "is-critical")}>
             <ShieldAlert aria-hidden size={15} />
-            {mode === "overview" ? "7 medicines" : "87 critical"}
+            {mode === "overview" ? "7 mapped medicines" : "87 critical"}
           </span>
           <button
             aria-label="Investigate evidence"
@@ -1129,12 +381,6 @@ export function Dashboard() {
       </nav>
 
       <section className="medicine-graph-stage" aria-label="Medicine Risk Network">
-        <div className="graph-status-strip" aria-hidden>
-          <span>Medicine Risk Network</span>
-          <span>{mode === "overview" ? "Network Overview" : "Medicine Risk Graph"}</span>
-          <span>{mode === "overview" ? "Hospital medicines" : "Supplier chain mapped"}</span>
-        </div>
-
         <MedicineRiskGraph
           activePath={activePath}
           addedEvidence={addedEvidence}
@@ -1363,7 +609,25 @@ function MedicineRiskGraph({
   );
   const hoveredNode = hoveredNodeId ? byId.get(hoveredNodeId) : null;
   const overviewLayout = buildOverviewLayout(visibleNodes);
-  const graphDepths = buildGraphDepths(visibleNodes, visibleEdges);
+  const hoveredMedicineId = hoveredNode?.kind === "medicine" ? hoveredNode.id : null;
+  const hoveredMedicineEdgeIds = hoveredMedicineId
+    ? new Set(medicineSupplyChainEdges[hoveredMedicineId] ?? [])
+    : null;
+  const hoveredMedicineNodeIds = new Set<string>();
+  const criticalMedicineEdgeIds = new Set(medicineSupplyChainEdges[selectedMedicineId] ?? []);
+
+  if (hoveredMedicineId && hoveredMedicineEdgeIds) {
+    hoveredMedicineNodeIds.add(hoveredMedicineId);
+
+    for (const edge of visibleEdges) {
+      if (!hoveredMedicineEdgeIds.has(edge.id)) {
+        continue;
+      }
+
+      hoveredMedicineNodeIds.add(edge.from);
+      hoveredMedicineNodeIds.add(edge.to);
+    }
+  }
 
   const pointFor = (node: GraphNode) =>
     mode === "focused" && node.detail
@@ -1393,7 +657,14 @@ function MedicineRiskGraph({
   };
 
   return (
-    <div className={cn("medicine-risk-graph", `is-${mode}`, pulsePath && "is-pulsing")}>
+    <div
+      className={cn(
+        "medicine-risk-graph",
+        `is-${mode}`,
+        pulsePath && "is-pulsing",
+        Boolean(hoveredMedicineId) && "has-medicine-hover",
+      )}
+    >
       <svg
         aria-hidden
         className="medicine-risk-links"
@@ -1412,12 +683,10 @@ function MedicineRiskGraph({
         </defs>
         {visibleEdges.map((edge, index) => {
           const isActive = activePath.has(edge.from) && activePath.has(edge.to);
-          const edgeDepth = Math.min(
-            graphDepths.get(edge.from) ?? visibleNodes.length,
-            graphDepths.get(edge.to) ?? visibleNodes.length,
-          );
+          const isCriticalMedicineEdge = criticalMedicineEdgeIds.has(edge.id);
+          const isHoveredMedicineEdge = Boolean(hoveredMedicineEdgeIds?.has(edge.id));
           const edgeStyle = {
-            "--link-delay": `${Math.min(edgeDepth * 90 + index * 9, 640)}ms`,
+            "--link-delay": `${Math.min(index * 6, 160)}ms`,
           } as CSSProperties;
 
           return (
@@ -1426,11 +695,13 @@ function MedicineRiskGraph({
                 "medicine-risk-link",
                 `risk-${edge.risk}`,
                 isActive && "is-active",
+                isCriticalMedicineEdge && "is-critical-chain",
+                isHoveredMedicineEdge && "is-hover-trace",
+                Boolean(hoveredMedicineEdgeIds && !isHoveredMedicineEdge) && "is-hover-muted",
                 edge.scripted && "is-scripted",
               )}
               d={pathFor(edge)}
               key={edge.id}
-              pathLength="1"
               style={edgeStyle}
             />
           );
@@ -1442,9 +713,9 @@ function MedicineRiskGraph({
         const isActive = activePath.has(node.id);
         const isDimmed = mode === "focused" && !isActive && node.id !== selectedMedicineId;
         const isSource = node.kind === "source";
-        const nodeDepth = graphDepths.get(node.id) ?? 5;
+        const isHoveredMedicineNode = hoveredMedicineNodeIds.has(node.id);
         const nodeStyle = {
-          "--node-delay": `${Math.min(nodeDepth * 92 + index * 8, 680)}ms`,
+          "--node-delay": `${Math.min(index * 10, 220)}ms`,
           left: `${point.x}%`,
           top: `${point.y}%`,
         } as CSSProperties;
@@ -1458,6 +729,8 @@ function MedicineRiskGraph({
               `risk-${node.risk}`,
               isActive && "is-active-path",
               isDimmed && "is-dimmed",
+              Boolean(hoveredMedicineId && isHoveredMedicineNode) && "is-hover-trace",
+              Boolean(hoveredMedicineId && !isHoveredMedicineNode) && "is-hover-muted",
               selectedNodeId === node.id && "is-selected",
               node.id === selectedMedicineId && "is-critical-medicine",
               node.id === scriptedSourceId && "is-new-evidence",
@@ -1505,7 +778,10 @@ function HoverPreview({
   return (
     <div
       className={cn("graph-hover-preview", `risk-${node.risk}`, mode === "focused" && "is-focused")}
-      style={{ left: `${Math.min(point.x + 2, 76)}%`, top: `${Math.max(point.y - 9, 12)}%` }}
+      style={{
+        left: `${Math.min(point.x + 2, 76)}%`,
+        top: `${Math.max(point.y - 9, 12)}%`,
+      }}
     >
       <span>{node.kind}</span>
       <strong>{node.label}</strong>
@@ -1560,7 +836,7 @@ function RiskSidePanel({
         <div className="risk-score-row">
           <div>
             <span>Availability risk</span>
-            <strong>{node.id === selectedMedicineId ? "87" : node.risk}</strong>
+            <strong>{node.id === selectedMedicineId ? (node.metric ?? "87") : node.risk}</strong>
           </div>
           <div>
             <span>Confidence</span>
@@ -1580,8 +856,8 @@ function RiskSidePanel({
       <section className="risk-panel-section">
         <h2>Care Impact</h2>
         <p>
-          Used in time-sensitive hospital treatment where delayed availability can affect patient
-          care.
+          Used in oncology treatment where delayed availability can force allocation, substitution,
+          or treatment timing decisions.
         </p>
       </section>
 
@@ -1590,8 +866,8 @@ function RiskSidePanel({
         <div className="recommendation-box">
           <strong>Prepare alternate supplier order</strong>
           <p>
-            Verify approved supplier availability and lead time before stock falls below safety
-            threshold.
+            Verify usable supplier availability, lead time, and formulary alternatives before
+            oncology stock falls below safety threshold.
           </p>
         </div>
       </section>
@@ -1667,7 +943,7 @@ function InvestigationTimeline({
 }) {
   const runningSteps = [
     "Searching newer public sources",
-    "Evaluating relevance to Vadodara path",
+    "Evaluating relevance to platinum API path",
     "Preparing graph evidence update",
   ];
 
@@ -1677,11 +953,11 @@ function InvestigationTimeline({
       <div className="timeline-list">
         <TimelineItem
           icon={<Activity aria-hidden size={14} />}
-          text="Risk Path opened for Meropenem IV"
+          text="Risk Path opened for Carboplatin Injection"
         />
         <TimelineItem
           icon={<RouteIcon aria-hidden size={14} />}
-          text="Supplier chain kept unchanged"
+          text="Supplier chain kept anchored to FDA evidence"
         />
         {investigationState === "running"
           ? runningSteps.map((step) => (
@@ -1696,7 +972,7 @@ function InvestigationTimeline({
         {addedEvidence ? (
           <TimelineItem
             icon={<CheckCircle2 aria-hidden size={14} />}
-            text="Added Port operations update Evidence Satellite"
+            text="Added Times of India API report Evidence Satellite"
           />
         ) : null}
       </div>

@@ -3,6 +3,8 @@ node_modules
 dist
 dist-ssr
 storybook-static
+video-remotion/build
+video-remotion/out
 *.local
 local.db
 local.db-*

@@ -2869,42 +2869,9 @@ blockquote footer {
 
 .sanitas-logo-mark {
   display: block;
-  width: 1.82rem;
-  height: 1.36rem;
-  overflow: visible;
-}
-
-.sanitas-logo-orbit {
-  stroke: #8ebec0;
-  stroke-linecap: round;
-  stroke-width: 1.55;
-  opacity: 0.92;
-}
-
-.sanitas-logo-medicine {
-  fill: #102023;
-  stroke: #b3d3d2;
-  stroke-width: 1.35;
-}
-
-.sanitas-logo-medicine-left {
-  fill: #132729;
-}
-
-.sanitas-logo-medicine-right {
-  fill: #0e1c1f;
-}
-
-.sanitas-logo-medicine-detail {
-  stroke: #d8eeeb;
-  stroke-linecap: round;
-  stroke-width: 1.1;
-  opacity: 0.84;
-}
-
-.sanitas-logo-risk-dot {
-  fill: #ff5a0a;
-  filter: drop-shadow(0 0 5px rgb(255 90 10 / 70%));
+  width: 2rem;
+  height: 1.72rem;
+  object-fit: contain;
 }
 
 .medicine-graph-brand strong {
@@ -3859,26 +3826,6 @@ blockquote footer {
   color: var(--sanitas-muted);
 }
 
-.graph-status-strip {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.9rem;
-  z-index: 14;
-  display: flex;
-  max-width: calc(100% - 2rem);
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  color: var(--sanitas-faint);
-  font-size: 0.72rem;
-}
-
-.graph-status-strip span {
-  border: 1px solid var(--sanitas-border-soft);
-  border-radius: 999px;
-  background: oklch(0.12 0.016 205 / 64%);
-  padding: 0.34rem 0.52rem;
-}
-
 .medicine-risk-graph {
   position: absolute;
   inset: 0;
@@ -3909,11 +3856,9 @@ blockquote footer {
   fill: none;
   stroke: url("#sanitas-calm-link");
   stroke-linecap: round;
-  stroke-width: 0.2;
-  stroke-dasharray: 1.01 1.01;
-  stroke-dashoffset: 0;
+  stroke-width: 0.24;
   opacity: 0.46;
-  animation: graph-link-draw 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: graph-fade-in 220ms ease-out backwards;
   animation-delay: var(--link-delay, 0ms);
   transition:
     d 420ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -3942,8 +3887,16 @@ blockquote footer {
   stroke-width: 0.42;
 }
 
-.medicine-risk-link.is-scripted {
-  stroke-dasharray: 0.06 0.035;
+.medicine-risk-graph.has-medicine-hover .medicine-risk-link.is-hover-muted {
+  opacity: 0.24;
+  stroke-width: 0.18;
+  filter: none;
+}
+
+.medicine-risk-graph.has-medicine-hover .medicine-risk-link.is-hover-trace {
+  filter: drop-shadow(0 0 8px oklch(0.78 0.09 190 / 58%));
+  opacity: 0.94;
+  stroke-width: 0.38;
 }
 
 .medicine-risk-graph.is-pulsing .medicine-risk-link.is-active {
@@ -3966,7 +3919,7 @@ blockquote footer {
   padding: 0.66rem;
   color: var(--sanitas-text);
   text-align: left;
-  animation: graph-node-settle 560ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: graph-fade-in 240ms ease-out backwards;
   animation-delay: var(--node-delay, 0ms);
   transform: translate(-50%, -50%);
   transition:
@@ -3996,6 +3949,20 @@ blockquote footer {
 }
 
 .medicine-risk-node.is-active-path {
+  opacity: 1;
+}
+
+.medicine-risk-graph.has-medicine-hover .medicine-risk-node.is-hover-muted {
+  opacity: 0.16;
+}
+
+.medicine-risk-graph.has-medicine-hover .medicine-risk-node.node-medicine.is-hover-muted {
+  opacity: 0.38;
+}
+
+.medicine-risk-graph.has-medicine-hover .medicine-risk-node.is-hover-trace {
+  z-index: 16;
+  border-color: oklch(0.82 0.06 190 / 62%);
   opacity: 1;
 }
 
@@ -4107,7 +4074,7 @@ blockquote footer {
 }
 
 .medicine-risk-node.is-new-evidence {
-  animation: graph-evidence-settle 620ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: graph-fade-in 260ms ease-out backwards;
   animation-delay: var(--node-delay, 0ms);
 }
 
@@ -4124,13 +4091,43 @@ blockquote footer {
 }
 
 .medicine-risk-graph.is-overview .medicine-risk-link {
-  opacity: 0.2;
-  stroke-width: 0.12;
+  stroke: oklch(0.72 0.014 215 / 76%);
+  filter: none;
+  opacity: 0.54;
+  stroke-width: 0.26;
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-link.risk-critical,
+.medicine-risk-graph.is-overview .medicine-risk-link.risk-elevated,
+.medicine-risk-graph.is-overview .medicine-risk-link.risk-watch,
+.medicine-risk-graph.is-overview .medicine-risk-link.is-active {
+  stroke: oklch(0.72 0.014 215 / 76%);
+  filter: none;
 }
 
 .medicine-risk-graph.is-overview .medicine-risk-link.is-active {
-  opacity: 0.68;
-  stroke-width: 0.28;
+  opacity: 0.56;
+  stroke-width: 0.26;
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-link.is-critical-chain {
+  stroke: oklch(0.72 0.13 35 / 76%);
+  filter: drop-shadow(0 0 5px oklch(0.66 0.16 34 / 28%));
+  opacity: 0.72;
+  stroke-width: 0.3;
+}
+
+.medicine-risk-graph.is-overview.has-medicine-hover .medicine-risk-link.is-hover-trace {
+  stroke: oklch(0.82 0.018 210 / 84%);
+  filter: drop-shadow(0 0 6px oklch(0.72 0.018 210 / 34%));
+  opacity: 0.86;
+  stroke-width: 0.32;
+}
+
+.medicine-risk-graph.is-overview.has-medicine-hover
+  .medicine-risk-link.is-hover-trace.is-critical-chain {
+  stroke: oklch(0.74 0.14 35 / 86%);
+  filter: drop-shadow(0 0 7px oklch(0.68 0.17 34 / 36%));
 }
 
 .medicine-risk-graph.is-overview .medicine-risk-node {
@@ -4196,13 +4193,40 @@ blockquote footer {
   border-radius: 999px;
 }
 
+.medicine-risk-graph.is-overview .medicine-risk-node.node-medicine.is-hover-trace {
+  background:
+    linear-gradient(180deg, oklch(0.9 0.03 190 / 8%), transparent 84%), oklch(0.16 0.024 205 / 94%);
+  box-shadow:
+    0 0 0 1px oklch(0.79 0.08 190 / 26%),
+    0 10px 34px oklch(0.04 0.014 230 / 46%);
+}
+
 .medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon {
   width: 2.18rem;
   height: 2.18rem;
   border-radius: 999px;
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
+  border-color: var(--sanitas-border-soft);
+  background:
+    radial-gradient(circle at 32% 24%, oklch(0.92 0.03 190 / 10%), transparent 62%),
+    oklch(0.12 0.018 205 / 86%);
+  box-shadow:
+    0 14px 34px oklch(0.04 0.012 230 / 42%),
+    inset 0 1px 0 oklch(0.95 0.02 190 / 5%);
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon.risk-critical {
+  border-color: oklch(0.66 0.24 26 / 62%);
+  background:
+    radial-gradient(circle at 35% 28%, oklch(0.66 0.24 26 / 22%), transparent 68%),
+    oklch(0.14 0.025 205 / 88%);
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon.risk-elevated {
+  border-color: oklch(0.75 0.16 62 / 44%);
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon.risk-watch {
+  border-color: oklch(0.72 0.12 174 / 38%);
 }
 
 .medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon strong,
@@ -4224,6 +4248,11 @@ blockquote footer {
 .medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon.is-selected {
   background: oklch(0.16 0.025 205 / 70%);
   box-shadow: 0 0 0 1px oklch(0.72 0.05 190 / 30%);
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-node.is-overview-icon.is-hover-trace .node-icon {
+  color: oklch(0.84 0.08 190);
+  filter: drop-shadow(0 0 10px oklch(0.73 0.08 190 / 58%));
 }
 
 .medicine-risk-graph.is-focused .medicine-risk-node {
@@ -4589,67 +4618,9 @@ blockquote footer {
   }
 }
 
-@keyframes graph-link-draw {
-  0% {
+@keyframes graph-fade-in {
+  from {
     opacity: 0;
-    stroke-dashoffset: 1;
-  }
-
-  55% {
-    opacity: 0.62;
-  }
-
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes graph-node-settle {
-  0% {
-    opacity: 0;
-    filter: blur(5px);
-    transform: translate(-50%, calc(-50% + 1.15rem)) scale(0.76);
-  }
-
-  38% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translate(-50%, calc(-50% - 0.2rem)) scale(1.035);
-  }
-
-  72% {
-    opacity: 1;
-    transform: translate(-50%, calc(-50% + 0.08rem)) scale(0.985);
-  }
-
-  100% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-@keyframes graph-evidence-settle {
-  0% {
-    opacity: 0;
-    filter: blur(7px);
-    transform: translate(-50%, calc(-50% + 1.35rem)) scale(0.52);
-  }
-
-  42% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translate(-50%, calc(-50% - 0.28rem)) scale(1.08);
-  }
-
-  74% {
-    transform: translate(-50%, calc(-50% + 0.08rem)) scale(0.98);
-  }
-
-  100% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -4757,8 +4728,7 @@ blockquote footer {
     padding: 0.5rem;
   }
 
-  .medicine-risk-node small,
-  .graph-status-strip span:nth-child(3) {
+  .medicine-risk-node small {
     display: none;
   }
 

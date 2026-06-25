@@ -47,6 +47,11 @@ This repo uses the globally installed Matt Pocock workflow skills rather than
 checking duplicate skill copies into `.agents/skills/`. The project-specific
 routing context those skills need lives in `docs/agents/`.
 
+For Remotion video work under `video-remotion/`, read the local skill at
+`video-remotion/.codex/skills/remotion-best-practices/SKILL.md` before editing
+Remotion code, then load only the relevant rule files from its `rules/`
+directory.
+
 Use the workflow skills for their matching jobs:
 
 - `triage`, `to-issues`, and `to-prd` for Linear issue flow.
