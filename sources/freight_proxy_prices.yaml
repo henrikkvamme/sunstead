@@ -1,0 +1,38 @@
+source_id: freight_proxy_prices
+name: New York Fed Global Supply Chain Pressure Index
+source_type: logistics_pressure_proxy_file
+adapter: file_download
+enabled: true
+priority: P2
+base_url: https://www.newyorkfed.org/medialibrary/research/interactives/data/gscpi/gscpi_interactive_data.csv
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 12
+  burst: 1
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: nyfed.gscpi.v1
+  chunking: latest_logistics_pressure_observation
+compliance:
+  robots: public_dataset_download_terms
+  license_notes: New York Fed Global Supply Chain Pressure Index public research data. Use with Federal Reserve Bank of New York attribution and source caveats; this is a logistics-pressure proxy, not a commercial freight-rate feed.
+  pii_expected: false
+  data_minimization: Store latest GSCPI observation date, value, unit, source series, vintage metadata, and source file needed for logistics-pressure provenance.
+  retention_notes: Public aggregate logistics-pressure observations retained for reproducible supply-chain risk history; raw CSV files are content-hashed to track revisions.
+schedule:
+  cadence: 1d
+  jitter_seconds: 3600
+fixtures:
+  success: tests/fixtures/sources/freight_proxy_prices/success.csv

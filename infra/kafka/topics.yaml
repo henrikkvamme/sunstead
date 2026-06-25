@@ -1,0 +1,116 @@
+topics:
+  - topic_name: ingest.jobs
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 168
+  - topic_name: ingest.raw_document_created
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: ingest.document_parsed
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: ingest.extraction_requested
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 336
+  - topic_name: ingest.extraction_completed
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: ingest.deadletter
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: graph.node_upsert
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: graph.relationship_upsert
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: graph.batch_upsert
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: graph.deadletter
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: risk.candidates
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: risk.case_created
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: risk.investigation_tasks
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720
+  - topic_name: risk.agent_findings
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: risk.verdicts
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: risk.alerts
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: agents.commands
+    partitions: 1
+    replication: 1
+    cleanup_policy: compact,delete
+    retention_hours: 168
+  - topic_name: agents.status
+    partitions: 1
+    replication: 1
+    cleanup_policy: compact,delete
+    retention_hours: 168
+  - topic_name: agents.audit_log
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: dashboard.graph_chat_answered
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: ops.mcp_actions
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 2160
+  - topic_name: ops.metrics
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 168
+  - topic_name: ops.errors
+    partitions: 1
+    replication: 1
+    cleanup_policy: delete
+    retention_hours: 720

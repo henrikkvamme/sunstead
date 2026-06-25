@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:gdacs="http://www.gdacs.org" xmlns:georss="http://www.georss.org/georss" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GDACS RSS information</title>
+    <link>https://www.gdacs.org/</link>
+    <copyright>public domain</copyright>
+    <description>Near real-time notification about natural disaster with a potential humanitarian impact</description>
+    <pubDate>Wed, 24 Jun 2026 22:15:03 GMT</pubDate>
+    <atom:link href="https://www.gdacs.org/xml/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Orange tropical cyclone alert in the Philippines</title>
+      <description>On 24/06/2026, a tropical cyclone passed near the Philippines.</description>
+      <link>https://www.gdacs.org/report.aspx?eventtype=TC&amp;eventid=1001234</link>
+      <pubDate>Wed, 24 Jun 2026 14:15:23 GMT</pubDate>
+      <gdacs:dateadded>Wed, 24 Jun 2026 14:15:23 GMT</gdacs:dateadded>
+      <gdacs:datemodified>Wed, 24 Jun 2026 18:02:11 GMT</gdacs:datemodified>
+      <gdacs:iscurrent>true</gdacs:iscurrent>
+      <gdacs:fromdate>Wed, 24 Jun 2026 12:00:00 GMT</gdacs:fromdate>
+      <gdacs:todate>Thu, 25 Jun 2026 12:00:00 GMT</gdacs:todate>
+      <dc:subject>TC2</dc:subject>
+      <guid isPermaLink="false">TC1001234</guid>
+      <geo:Point>
+        <geo:lat>14.5995</geo:lat>
+        <geo:long>120.9842</geo:long>
+      </geo:Point>
+      <georss:point>14.5995 120.9842</georss:point>
+      <gdacs:cap>https://www.gdacs.org/contentdata/resources/TC/1001234/cap_1001234.xml</gdacs:cap>
+      <gdacs:eventtype>TC</gdacs:eventtype>
+      <gdacs:alertlevel>Orange</gdacs:alertlevel>
+      <gdacs:alertscore>2</gdacs:alertscore>
+      <gdacs:episodealertlevel>Orange</gdacs:episodealertlevel>
+      <gdacs:episodealertscore>2</gdacs:episodealertscore>
+      <gdacs:eventid>1001234</gdacs:eventid>
+      <gdacs:episodeid>3</gdacs:episodeid>
+      <gdacs:severity unit="km/h" value="160">Maximum wind speed 160 km/h</gdacs:severity>
+      <gdacs:population unit="Population Affected" value="250000">250 thousand people affected</gdacs:population>
+      <gdacs:vulnerability value="4.2" />
+      <gdacs:iso3>PHL</gdacs:iso3>
+      <gdacs:country>Philippines</gdacs:country>
+    </item>
+    <item>
+      <title>Green earthquake alert in United States</title>
+      <description>On 24/06/2026, an earthquake occurred in United States.</description>
+      <link>https://www.gdacs.org/report.aspx?eventtype=EQ&amp;eventid=1548310</link>
+      <pubDate>Wed, 24 Jun 2026 15:15:23 GMT</pubDate>
+      <gdacs:dateadded>Wed, 24 Jun 2026 15:15:23 GMT</gdacs:dateadded>
+      <gdacs:datemodified>Wed, 24 Jun 2026 21:02:11 GMT</gdacs:datemodified>
+      <gdacs:iscurrent>true</gdacs:iscurrent>
+      <gdacs:fromdate>Wed, 24 Jun 2026 15:10:40 GMT</gdacs:fromdate>
+      <gdacs:todate>Wed, 24 Jun 2026 15:10:40 GMT</gdacs:todate>
+      <dc:subject>EQ1</dc:subject>
+      <guid isPermaLink="false">EQ1548310</guid>
+      <geo:Point>
+        <geo:lat>39.3636665344238</geo:lat>
+        <geo:long>-123.229331970215</geo:long>
+      </geo:Point>
+      <georss:point>39.3636665344238 -123.229331970215</georss:point>
+      <gdacs:cap>https://www.gdacs.org/contentdata/resources/EQ/1548310/cap_1548310.xml</gdacs:cap>
+      <gdacs:eventtype>EQ</gdacs:eventtype>
+      <gdacs:alertlevel>Green</gdacs:alertlevel>
+      <gdacs:alertscore>0.61</gdacs:alertscore>
+      <gdacs:episodealertlevel>Green</gdacs:episodealertlevel>
+      <gdacs:episodealertscore>1</gdacs:episodealertscore>
+      <gdacs:eventid>1548310</gdacs:eventid>
+      <gdacs:episodeid>1714239</gdacs:episodeid>
+      <gdacs:severity unit="M" value="5.57">Magnitude 5.57M, Depth:8.1km</gdacs:severity>
+      <gdacs:population unit="(in MMI&gt;=VII)" value="10782">10 thousand (in MMI&gt;=VII)</gdacs:population>
+      <gdacs:vulnerability value="1.31" />
+      <gdacs:iso3>USA</gdacs:iso3>
+      <gdacs:country>United States</gdacs:country>
+    </item>
+  </channel>
+</rss>

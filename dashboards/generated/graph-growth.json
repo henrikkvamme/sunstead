@@ -1,0 +1,66 @@
+{
+  "dashboard": {
+    "uid": "graph-growth",
+    "title": "Graph Growth",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Graph upserts by status",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT status, upsert_type, count(*) AS upserts\nFROM graph_upsert_audit\nGROUP BY status, upsert_type\nORDER BY upserts DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Graph write failures",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT graph_key, neo4j_label_or_type, error, started_at\nFROM graph_upsert_audit\nWHERE status = 'failed'\nORDER BY started_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Neo4j graph totals",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT metric_name, metric_value, observed_at\nFROM ops_metrics\nWHERE service = 'neo4j'\n  AND metric_name IN ('graph_nodes_total', 'graph_relationships_total')\nORDER BY observed_at DESC, metric_name\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

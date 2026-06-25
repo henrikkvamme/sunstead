@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "recall_number": "Z-0001-2026",
+      "classification": "Class II",
+      "status": "Ongoing",
+      "product_description": "Example infusion pump model X",
+      "reason_for_recall": "Battery may fail before the end of expected service life.",
+      "recalling_firm": "Example Devices LLC",
+      "distribution_pattern": "Nationwide in the United States",
+      "report_date": "20260115",
+      "openfda": {
+        "device_name": ["Infusion pump"],
+        "medical_specialty_description": ["General Hospital"],
+        "product_code": ["ABC"]
+      }
+    }
+  ]
+}

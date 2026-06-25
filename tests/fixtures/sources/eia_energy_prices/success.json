@@ -1,0 +1,45 @@
+{
+  "response": {
+    "total": "3",
+    "dateFormat": "YYYY-MM-DD",
+    "frequency": "weekly",
+    "data": [
+      {
+        "period": "2026-06-15",
+        "duoarea": "NUS",
+        "duoarea-name": "U.S.",
+        "product": "EPD2D",
+        "product-name": "No 2 Diesel",
+        "process": "PTE",
+        "process-name": "Retail Sales",
+        "series-description": "U.S. No 2 Diesel Retail Prices",
+        "value": "3.571",
+        "units": "$/GAL"
+      },
+      {
+        "period": "2026-06-08",
+        "duoarea": "NUS",
+        "duoarea-name": "U.S.",
+        "product": "EPD2D",
+        "product-name": "No 2 Diesel",
+        "process": "PTE",
+        "process-name": "Retail Sales",
+        "series-description": "U.S. No 2 Diesel Retail Prices",
+        "value": "3.534",
+        "units": "$/GAL"
+      },
+      {
+        "period": "2026-06-01",
+        "duoarea": "NUS",
+        "duoarea-name": "U.S.",
+        "product": "EPD2D",
+        "product-name": "No 2 Diesel",
+        "process": "PTE",
+        "process-name": "Retail Sales",
+        "series-description": "U.S. No 2 Diesel Retail Prices",
+        "value": "3.514",
+        "units": "$/GAL"
+      }
+    ]
+  }
+}

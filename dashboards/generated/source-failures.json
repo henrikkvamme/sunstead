@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "source-failures",
+    "title": "Source Failures",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Error rate by source and stage",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT source_id, stage, count(*) AS errors\nFROM ingestion_errors\nWHERE occurred_at >= now() - interval '7 days'\nGROUP BY source_id, stage\nORDER BY errors DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Retryable versus non-retryable failures",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT retryable, count(*) AS errors\nFROM ingestion_errors\nWHERE occurred_at >= now() - interval '7 days'\nGROUP BY retryable\nORDER BY errors DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Latest source errors",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT source_id, stage, error_type, message, retryable, occurred_at\nFROM ingestion_errors\nORDER BY occurred_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Unhealthy enabled sources",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT ds.source_id, sh.status, sh.last_failure_at, sh.consecutive_failures, sh.freshness_lag_seconds\nFROM data_sources ds\nJOIN source_health sh ON sh.source_id = ds.source_id\nWHERE ds.enabled = true\n  AND sh.status <> 'healthy'\nORDER BY sh.consecutive_failures DESC, sh.last_failure_at DESC NULLS LAST;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

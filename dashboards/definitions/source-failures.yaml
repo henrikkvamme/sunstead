@@ -1,0 +1,35 @@
+uid: source-failures
+title: Source Failures
+panels:
+  - title: Error rate by source and stage
+    type: table
+    query: |
+      SELECT source_id, stage, count(*) AS errors
+      FROM ingestion_errors
+      WHERE occurred_at >= now() - interval '7 days'
+      GROUP BY source_id, stage
+      ORDER BY errors DESC;
+  - title: Retryable versus non-retryable failures
+    type: table
+    query: |
+      SELECT retryable, count(*) AS errors
+      FROM ingestion_errors
+      WHERE occurred_at >= now() - interval '7 days'
+      GROUP BY retryable
+      ORDER BY errors DESC;
+  - title: Latest source errors
+    type: table
+    query: |
+      SELECT source_id, stage, error_type, message, retryable, occurred_at
+      FROM ingestion_errors
+      ORDER BY occurred_at DESC
+      LIMIT 50;
+  - title: Unhealthy enabled sources
+    type: table
+    query: |
+      SELECT ds.source_id, sh.status, sh.last_failure_at, sh.consecutive_failures, sh.freshness_lag_seconds
+      FROM data_sources ds
+      JOIN source_health sh ON sh.source_id = ds.source_id
+      WHERE ds.enabled = true
+        AND sh.status <> 'healthy'
+      ORDER BY sh.consecutive_failures DESC, sh.last_failure_at DESC NULLS LAST;

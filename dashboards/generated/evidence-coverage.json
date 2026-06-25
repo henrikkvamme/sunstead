@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "evidence-coverage",
+    "title": "Evidence Coverage",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Risk cases with evidence spans",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  count(*) FILTER (WHERE rv.id IS NOT NULL AND cardinality(rv.evidence_span_ids) > 0) AS cases_with_evidence,\n  count(*) AS total_cases,\n  round(\n    100.0 * count(*) FILTER (WHERE rv.id IS NOT NULL AND cardinality(rv.evidence_span_ids) > 0)\n    / nullif(count(*), 0),\n    2\n  ) AS evidence_coverage_pct\nFROM risk_cases rc\nLEFT JOIN LATERAL (\n  SELECT id, evidence_span_ids\n  FROM risk_verdicts\n  WHERE risk_case_id = rc.id\n  ORDER BY created_at DESC\n  LIMIT 1\n) rv ON true;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Evidence spans by source",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT source_id, evidence_type, count(*) AS spans, avg(confidence) AS avg_confidence\nFROM evidence_spans\nGROUP BY source_id, evidence_type\nORDER BY spans DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Extraction confidence distribution",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  width_bucket(confidence, 0, 1, 10) AS confidence_bucket,\n  count(*) AS spans\nFROM evidence_spans\nGROUP BY confidence_bucket\nORDER BY confidence_bucket;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Findings requiring evidence verification",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT risk_case_id, agent_name, finding_type, critic_status, confidence, created_at\nFROM agent_findings\nWHERE critic_status IN ('revise', 'reject', 'needs_human_review')\n   OR confidence < 0.70\nORDER BY created_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

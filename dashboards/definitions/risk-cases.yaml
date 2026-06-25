@@ -1,0 +1,35 @@
+uid: risk-cases
+title: Risk Cases
+panels:
+  - title: Case lifecycle funnel
+    type: table
+    query: |
+      SELECT status, count(*) AS cases
+      FROM risk_cases
+      GROUP BY status
+      ORDER BY cases DESC;
+  - title: Verdict distribution
+    type: table
+    query: |
+      SELECT verdict_type, severity, count(*) AS verdicts
+      FROM risk_verdicts
+      GROUP BY verdict_type, severity
+      ORDER BY verdicts DESC;
+  - title: Median investigation time
+    type: table
+    query: |
+      SELECT
+        status,
+        percentile_cont(0.5) WITHIN GROUP (
+          ORDER BY extract(epoch FROM (coalesce(closed_at, updated_at) - opened_at))
+        ) AS median_seconds
+      FROM risk_cases
+      GROUP BY status
+      ORDER BY median_seconds DESC NULLS LAST;
+  - title: Cases by source driver
+    type: table
+    query: |
+      SELECT risk_type, severity, count(*) AS cases, max(updated_at) AS latest_update_at
+      FROM risk_cases
+      GROUP BY risk_type, severity
+      ORDER BY cases DESC, latest_update_at DESC;

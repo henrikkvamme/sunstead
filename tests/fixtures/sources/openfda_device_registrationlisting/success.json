@@ -1,0 +1,27 @@
+{
+  "results": [
+    {
+      "registration_number": "3011234567",
+      "fei_number": "3011234567",
+      "firm_name": "Example Devices LLC",
+      "owner_operator": {
+        "firm_name": "Example Devices LLC",
+        "owner_operator_number": "10012345"
+      },
+      "establishment_type": ["Manufacturer"],
+      "address_1": "100 Device Way",
+      "city": "Irvine",
+      "state_code": "CA",
+      "country_code": "US",
+      "registration": {
+        "status": "Active",
+        "expiry_date_year": "2026"
+      },
+      "proprietary_name": ["Example Infusion Pump"],
+      "listing_number": ["D123456"],
+      "product_code": "ABC",
+      "device_name": "Infusion pump",
+      "medical_specialty_description": "General Hospital"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "medicine-drug-manufacturing-risk",
+    "title": "Medicine and Drug Manufacturing Risk",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Highest-risk drugs, ingredients, manufacturers, and facilities",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  ce.display_name,\n  ce.entity_type,\n  rc.risk_type,\n  rc.severity,\n  rc.status,\n  rc.risk_score,\n  rc.confidence,\n  rc.updated_at\nFROM risk_cases rc\nJOIN canonical_entities ce ON ce.id = rc.scope_entity_id\nWHERE rc.scope_type IN ('Drug', 'ActiveIngredient', 'Manufacturer', 'Facility')\nORDER BY rc.risk_score DESC, rc.confidence DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Recall and quality cases",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT case_key, title, severity, status, risk_score, confidence, updated_at\nFROM risk_cases\nWHERE risk_type IN ('recall_quality', 'regulatory')\nORDER BY risk_score DESC, updated_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Shortage cases",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT case_key, title, severity, status, risk_score, confidence, updated_at\nFROM risk_cases\nWHERE risk_type = 'shortage'\nORDER BY risk_score DESC, updated_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Manufacturer and facility entities needing review",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT entity_type, canonical_key, display_name, confidence, review_reason, updated_at\nFROM canonical_entities\nWHERE entity_type IN ('Manufacturer', 'Facility')\n  AND needs_review = true\nORDER BY confidence ASC, updated_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

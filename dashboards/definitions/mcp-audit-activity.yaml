@@ -1,0 +1,39 @@
+uid: mcp-audit-activity
+title: MCP Audit Activity
+panels:
+  - title: MCP actions by status
+    type: table
+    query: |
+      SELECT action, status, destructive, count(*) AS actions, max(started_at) AS latest_started_at
+      FROM mcp_audit_log
+      WHERE started_at >= now() - interval '7 days'
+      GROUP BY action, status, destructive
+      ORDER BY actions DESC;
+  - title: Destructive actions pending approval
+    type: table
+    query: |
+      SELECT action, project, service_name, actor, started_at
+      FROM mcp_audit_log
+      WHERE destructive = true
+        AND approval_id IS NULL
+        AND status IN ('planned', 'pending_approval')
+      ORDER BY started_at DESC
+      LIMIT 50;
+  - title: Failed MCP actions
+    type: table
+    query: |
+      SELECT action, project, service_name, error, started_at
+      FROM mcp_audit_log
+      WHERE status = 'failed'
+      ORDER BY started_at DESC
+      LIMIT 50;
+  - title: Credential-adjacent access attempts
+    type: table
+    query: |
+      SELECT action, project, service_name, actor, status, started_at
+      FROM mcp_audit_log
+      WHERE action ILIKE '%credential%'
+        OR action ILIKE '%connection%'
+        OR action ILIKE '%secret%'
+      ORDER BY started_at DESC
+      LIMIT 50;

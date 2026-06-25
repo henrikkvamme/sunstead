@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "disclaimer": "Fixture derived from the shape of openFDA NDC responses.",
+    "results": {
+      "skip": 0,
+      "limit": 1,
+      "total": 1
+    }
+  },
+  "results": [
+    {
+      "product_ndc": "0002-8215",
+      "generic_name": "INSULIN LISPRO",
+      "brand_name": "HUMALOG",
+      "labeler_name": "Eli Lilly and Company",
+      "product_type": "HUMAN PRESCRIPTION DRUG",
+      "dosage_form": "INJECTION, SOLUTION",
+      "route": ["SUBCUTANEOUS"],
+      "active_ingredients": [
+        {
+          "name": "INSULIN LISPRO",
+          "strength": "100 [iU]/mL"
+        }
+      ],
+      "packaging": [
+        {
+          "package_ndc": "0002-8215-01",
+          "description": "1 VIAL in 1 CARTON"
+        }
+      ]
+    }
+  ]
+}

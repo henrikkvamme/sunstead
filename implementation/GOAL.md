@@ -1,0 +1,15 @@
+/goal Build the unnamed medicine/pharma/device supply-chain intelligence platform described in `implementation/`. Read every document in this directory first, especially `00_PLAN.md`, then implement phase by phase from `14_IMPLEMENTATION_PHASES.md`. Do not rename the application; use “the platform/system/application” until naming is requested.
+
+Core constraints: raw-first source storage, full provenance for every node/edge/risk/alert/agent conclusion/dashboard metric, typed Pydantic v2 models only, Pydantic AI structured outputs only, Kafka events using the envelope in `05_KAFKA_EVENT_DESIGN.md`, idempotent PostgreSQL/Neo4j writes, and audit records for MCP, source, agent, graph, risk, alert, and human-review actions.
+
+Implement a Python 3.12+ monorepo with `uv`, ruff, mypy/pyright, pytest, async PostgreSQL, Kafka client, Neo4j driver, httpx, tenacity, parser/scraping tools as needed, and CLI commands from `13_REPOSITORY_STRUCTURE.md`: `bootstrap-infra`, `init-db`, `init-kafka`, `init-neo4j`, `validate-source`, `register-source`, `ingest-once`, `run-scheduler`, `run-extractor`, `run-graph-writer`, `run-risk-engine`, `run-agent-swarm`, `create-dashboard`, `query-sources`, `query-graph`, `explain-case`.
+
+Use Aiven MCP where available for project/service discovery, PostgreSQL reads/writes, Kafka topic setup/produce/consume, metrics/logs, integrations, and audits, through the planned `AivenMCPController`. Keep direct-client fallbacks for every MCP capability and never make application runtime depend on MCP. Keep local-first Docker Compose for PostgreSQL, Kafka/Redpanda, Neo4j, and Grafana. Prefer Aiven PostgreSQL/Kafka/Grafana in cloud. Keep Neo4j local first but isolate graph access so migration to Neo4j Aura and later graph analytics is straightforward.
+
+Use env-driven OpenAI-compatible LLM config: `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`; optional `EMBEDDING_BASE_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_MODEL`. Do not hardcode providers.
+
+Start with the first vertical slice: openFDA Drug NDC ingestion -> raw document storage -> parsed chunks/evidence spans -> typed extraction of Drug/NDC/ActiveIngredient/Manufacturer -> entity resolution -> Neo4j graph upserts -> source freshness/graph growth dashboard. Then add drug enforcement recalls and create evidence-backed recall/quality risk cases. Continue through the phases without re-planning unless blocked by a verified capability, source, or permission constraint.
+
+Security/governance: no patient-identifiable data by default, no medical advice or clinical decisions, source compliance and robots/rate-limit validation, no literal secrets in configs/logs, read-only MCP by default, explicit approvals for destructive/production/credential actions, and human review for low-confidence high-impact entities or conflicting evidence.
+
+Before handoff, produce working code, migrations, topic specs, source configs, parser fixtures, graph Cypher, tests, dashboards, docs/runbooks, and verification output. Run `uv run ruff check .`, type checks, `uv run pytest`, plus repo-required `vp check` and `vp test`; run `vp build` only if frontend/build behavior changed.

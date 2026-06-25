@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "risk-cases",
+    "title": "Risk Cases",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Case lifecycle funnel",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT status, count(*) AS cases\nFROM risk_cases\nGROUP BY status\nORDER BY cases DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Verdict distribution",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT verdict_type, severity, count(*) AS verdicts\nFROM risk_verdicts\nGROUP BY verdict_type, severity\nORDER BY verdicts DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Median investigation time",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  status,\n  percentile_cont(0.5) WITHIN GROUP (\n    ORDER BY extract(epoch FROM (coalesce(closed_at, updated_at) - opened_at))\n  ) AS median_seconds\nFROM risk_cases\nGROUP BY status\nORDER BY median_seconds DESC NULLS LAST;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Cases by source driver",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT risk_type, severity, count(*) AS cases, max(updated_at) AS latest_update_at\nFROM risk_cases\nGROUP BY risk_type, severity\nORDER BY cases DESC, latest_update_at DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

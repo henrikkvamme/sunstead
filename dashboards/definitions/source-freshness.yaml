@@ -1,0 +1,34 @@
+uid: source-freshness
+title: Source Freshness
+panels:
+  - title: Source health
+    type: table
+    query: |
+      SELECT ds.source_id, ds.priority, sh.status, sh.last_success_at, sh.freshness_lag_seconds, sh.consecutive_failures
+      FROM data_sources ds
+      LEFT JOIN source_health sh ON sh.source_id = ds.source_id
+      WHERE ds.enabled = true
+      ORDER BY ds.priority, sh.status, sh.freshness_lag_seconds DESC NULLS LAST;
+  - title: Source evidence coverage
+    type: table
+    query: |
+      SELECT
+        ds.source_id,
+        ds.priority,
+        coalesce(count(DISTINCT rd.id), 0) AS raw_documents,
+        coalesce(count(DISTINCT dc.id), 0) AS document_chunks,
+        max(rd.fetched_at) AS latest_fetch_at
+      FROM data_sources ds
+      LEFT JOIN raw_documents rd ON rd.source_id = ds.source_id
+      LEFT JOIN document_chunks dc ON dc.raw_document_id = rd.id
+      WHERE ds.enabled = true
+      GROUP BY ds.source_id, ds.priority
+      ORDER BY ds.priority, raw_documents DESC, document_chunks DESC;
+  - title: Raw documents per hour
+    type: timeseries
+    query: |
+      SELECT date_trunc('hour', fetched_at) AS time, count(*) AS raw_documents
+      FROM raw_documents
+      WHERE fetched_at >= now() - interval '7 days'
+      GROUP BY time
+      ORDER BY time;

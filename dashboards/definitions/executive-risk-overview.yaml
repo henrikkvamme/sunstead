@@ -1,0 +1,43 @@
+uid: executive-risk-overview
+title: Executive Risk Overview
+panels:
+  - title: Open risk cases by severity
+    type: table
+    query: |
+      SELECT severity, count(*) AS cases
+      FROM risk_cases
+      WHERE status IN ('candidate', 'investigating', 'watch', 'confirmed', 'needs_human_review')
+      GROUP BY severity
+      ORDER BY
+        CASE severity
+          WHEN 'critical' THEN 1
+          WHEN 'high' THEN 2
+          WHEN 'medium' THEN 3
+          WHEN 'low' THEN 4
+          ELSE 5
+        END;
+  - title: Top current risk cases
+    type: table
+    query: |
+      SELECT case_key, title, risk_type, severity, status, risk_score, confidence, updated_at
+      FROM risk_cases
+      WHERE status IN ('candidate', 'investigating', 'watch', 'confirmed', 'needs_human_review')
+      ORDER BY risk_score DESC, confidence DESC, updated_at DESC
+      LIMIT 20;
+  - title: New or updated alerts
+    type: table
+    query: |
+      SELECT severity, status, count(*) AS alerts, max(last_emitted_at) AS latest_alert_at
+      FROM risk_alerts
+      WHERE last_emitted_at >= now() - interval '7 days'
+      GROUP BY severity, status
+      ORDER BY latest_alert_at DESC;
+  - title: Cases needing human review
+    type: table
+    query: |
+      SELECT case_key, title, risk_type, severity, risk_score, confidence, updated_at
+      FROM risk_cases
+      WHERE status = 'needs_human_review'
+        OR (severity IN ('critical', 'high') AND confidence < 0.80)
+      ORDER BY severity, risk_score DESC, updated_at DESC
+      LIMIT 50;

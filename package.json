@@ -1,6 +1,9 @@
 {
   "name": "sunstead",
   "private": true,
+  "workspaces": [
+    "video-remotion"
+  ],
   "type": "module",
   "imports": {
     "#/*": "./src/*"
@@ -14,6 +17,10 @@
     "lint": "vp lint --type-aware --tsconfig ./tsconfig.json",
     "build": "vp build",
     "preview": "vp preview",
+    "video:dev": "bun run --filter video-remotion dev",
+    "video:build": "bun run --filter video-remotion build",
+    "video:render": "bun run --filter video-remotion render",
+    "video:lint": "bun run --filter video-remotion lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vp test run"
@@ -23,6 +30,7 @@
     "@tanstack/react-router": "1.170.16",
     "@tanstack/react-start": "1.168.26",
     "@tanstack/router-plugin": "1.168.18",
+    "ai": "^6.0.209",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.545.0",

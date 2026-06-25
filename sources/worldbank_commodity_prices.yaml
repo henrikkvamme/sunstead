@@ -1,0 +1,38 @@
+source_id: worldbank_commodity_prices
+name: World Bank Commodity Prices
+source_type: commodity_price_file
+adapter: file_download
+enabled: true
+priority: P1
+base_url: https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 12
+  burst: 1
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: worldbank.commodity_prices_monthly.v1
+  chunking: latest_monthly_price_observation
+compliance:
+  robots: public_dataset_download_terms
+  license_notes: World Bank Commodity Markets Pink Sheet monthly XLSX. Use under World Bank dataset terms of use, summary terms, and Data Access and Licensing terms linked from the Commodity Markets page.
+  pii_expected: false
+  data_minimization: Store commodity name, latest monthly period, nominal USD price value, unit, update date, and source table metadata needed for supply-chain input-cost provenance.
+  retention_notes: Public monthly commodity price observations retained for reproducibility and input-cost risk history; raw XLSX files are content-hashed for correction tracking.
+schedule:
+  cadence: 1d
+  jitter_seconds: 900
+fixtures:
+  success: tests/fixtures/sources/worldbank_commodity_prices/success.csv

@@ -1,0 +1,124 @@
+{
+  "href": "https://api.reliefweb.int/v2/reports?appname=platform-test&limit=2",
+  "time": 12,
+  "links": {
+    "self": {
+      "href": "https://api.reliefweb.int/v2/reports?appname=platform-test&limit=2"
+    }
+  },
+  "totalCount": 2,
+  "count": 2,
+  "data": [
+    {
+      "id": "4110001",
+      "href": "https://api.reliefweb.int/v2/reports/4110001",
+      "score": 1,
+      "fields": {
+        "title": "Health logistics update: medicines delayed after port disruption",
+        "url": "https://reliefweb.int/report/example-country/health-logistics-update-medicines-delayed-after-port-disruption",
+        "status": true,
+        "date": {
+          "original": "2026-06-23T10:15:00+00:00",
+          "created": "2026-06-23T11:00:00+00:00",
+          "changed": "2026-06-24T08:30:00+00:00"
+        },
+        "source": [
+          {
+            "id": 1001,
+            "name": "Example Humanitarian Logistics Cluster",
+            "shortname": "EHLC"
+          }
+        ],
+        "country": [
+          {
+            "id": 210,
+            "name": "Example Country"
+          }
+        ],
+        "primary_country": {
+          "id": 210,
+          "name": "Example Country"
+        },
+        "theme": [
+          {
+            "id": 4595,
+            "name": "Health"
+          },
+          {
+            "id": 4601,
+            "name": "Logistics and Telecommunications"
+          }
+        ],
+        "disaster": [
+          {
+            "id": 5501,
+            "name": "Example Floods - Jun 2026"
+          }
+        ],
+        "format": [
+          {
+            "id": 12,
+            "name": "Situation Report"
+          }
+        ],
+        "language": [
+          {
+            "id": 267,
+            "name": "English"
+          }
+        ]
+      }
+    },
+    {
+      "id": "4110002",
+      "href": "https://api.reliefweb.int/v2/reports/4110002",
+      "score": 0.93,
+      "fields": {
+        "title": "Medical supply corridor restored for regional hospitals",
+        "url": "https://reliefweb.int/report/another-country/medical-supply-corridor-restored-regional-hospitals",
+        "status": true,
+        "date": {
+          "original": "2026-06-22T16:45:00+00:00",
+          "created": "2026-06-22T18:00:00+00:00",
+          "changed": "2026-06-23T07:10:00+00:00"
+        },
+        "source": [
+          {
+            "id": 1002,
+            "name": "Example Health Emergency Office",
+            "shortname": "EHEO"
+          }
+        ],
+        "country": [
+          {
+            "id": 211,
+            "name": "Another Country"
+          }
+        ],
+        "primary_country": {
+          "id": 211,
+          "name": "Another Country"
+        },
+        "theme": [
+          {
+            "id": 4595,
+            "name": "Health"
+          }
+        ],
+        "disaster": [],
+        "format": [
+          {
+            "id": 5,
+            "name": "News and Press Release"
+          }
+        ],
+        "language": [
+          {
+            "id": 267,
+            "name": "English"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "agent-activity",
+    "title": "Agent Activity",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Extraction runs by status",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT agent_name, status, count(*) AS runs\nFROM extraction_runs\nWHERE started_at >= now() - interval '24 hours'\nGROUP BY agent_name, status\nORDER BY runs DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Average extraction duration",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  agent_name,\n  status,\n  avg(extract(epoch FROM (coalesce(finished_at, now()) - started_at))) AS avg_duration_seconds\nFROM extraction_runs\nWHERE started_at >= now() - interval '7 days'\nGROUP BY agent_name, status\nORDER BY avg_duration_seconds DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Model token usage",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  agent_name,\n  model_name,\n  sum(coalesce((usage->>'input_tokens')::bigint, 0)) AS input_tokens,\n  sum(coalesce((usage->>'output_tokens')::bigint, 0)) AS output_tokens\nFROM extraction_runs\nWHERE started_at >= now() - interval '7 days'\nGROUP BY agent_name, model_name\nORDER BY input_tokens + output_tokens DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Agent findings by status",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT agent_name, finding_type, status, critic_status, count(*) AS findings\nFROM agent_findings\nWHERE created_at >= now() - interval '7 days'\nGROUP BY agent_name, finding_type, status, critic_status\nORDER BY findings DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

@@ -1,0 +1,38 @@
+source_id: fda_warning_letters
+name: FDA Warning Letters
+source_type: government_download
+adapter: file_download
+enabled: true
+priority: P1
+base_url: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-actions-and-activities/warning-letters/datatables-data?_format=xlsx&page=
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 30
+  burst: 2
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: fda.warning_letters_xlsx.v1
+  chunking: tabular_record
+compliance:
+  robots: validate_before_download
+  license_notes: FDA public warning letters download. Matters described can change after later FDA interaction.
+  pii_expected: false
+  data_minimization: Store warning letter date, company, issuing office, subject, and response/closeout links needed for regulatory provenance.
+  retention_notes: Public official source records retained for reproducibility and regulatory-event history.
+schedule:
+  cadence: 1d
+  jitter_seconds: 900
+fixtures:
+  success: tests/fixtures/sources/fda_warning_letters/success.csv

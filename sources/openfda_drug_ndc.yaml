@@ -1,0 +1,52 @@
+source_id: openfda_drug_ndc
+name: openFDA Drug NDC
+source_type: government_api
+adapter: paginated_rest
+enabled: true
+priority: P0
+base_url: https://api.fda.gov/drug/ndc.json
+method: GET
+auth:
+  type: query_param
+  env: OPENFDA_API_KEY
+  param: api_key
+  required: false
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: skip_limit
+  limit_param: limit
+  offset_param: skip
+  page_size: 1000
+  max_offset: 25000
+  results_path: results
+cursor:
+  strategy: full_refresh_plus_watermark
+  field: listing_expiration_date
+  lag_seconds: 86400
+rate_limit:
+  requests_per_minute: 220
+  burst: 10
+  backoff:
+    min_seconds: 1
+    max_seconds: 60
+dedupe:
+  key_fields:
+    - product_ndc
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: openfda.drug_ndc.v1
+  chunking: json_record
+compliance:
+  robots: not_applicable_api
+  license_notes: openFDA public API. Follow openFDA terms and limits.
+  pii_expected: false
+  data_minimization: Store product and labeler data needed for supply-chain provenance.
+  retention_notes: Public official source records retained for reproducibility.
+schedule:
+  cadence: 1d
+  jitter_seconds: 900
+fixtures:
+  success: tests/fixtures/sources/openfda_drug_ndc/success.json
+  empty: tests/fixtures/sources/openfda_drug_ndc/empty.json

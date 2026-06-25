@@ -1,0 +1,39 @@
+source_id: sec_edgar_supplier_filings
+name: SEC EDGAR Supplier Filings
+source_type: financial_regulatory_api
+adapter: rest
+enabled: true
+priority: P1
+base_url: https://data.sec.gov/submissions/CIK0000078003.json
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 300
+  burst: 1
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: sec.edgar_supplier_filings.v1
+  chunking: sec_filing_metadata
+  max_chunks: 25
+compliance:
+  robots: not_applicable_api
+  license_notes: SEC EDGAR submissions API public company filing metadata. Declare an informative User-Agent and keep request rates at or below SEC fair-access limits.
+  pii_expected: false
+  data_minimization: Store issuer identifiers, filing accession metadata, form type, filing/report dates, SEC archive document URLs, and industry metadata needed for supplier and manufacturer disclosure provenance.
+  retention_notes: Public company filing metadata retained for reproducibility and supplier-risk history; filing text/document ingestion is handled separately to preserve source-specific provenance.
+schedule:
+  cadence: 1d
+  jitter_seconds: 900
+fixtures:
+  success: tests/fixtures/sources/sec_edgar_supplier_filings/success.json

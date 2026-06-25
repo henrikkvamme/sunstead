@@ -1,0 +1,19 @@
+{
+  "query": "\"drug shortage\" OR \"pharmaceutical supply chain\"",
+  "mode": "timelinevol",
+  "timespan": "1d",
+  "timeline": [
+    {
+      "date": "20260624000000",
+      "value": 0.72,
+      "norm": 2.4,
+      "count": 18
+    },
+    {
+      "date": "20260624150000",
+      "value": 1.31,
+      "norm": 4.2,
+      "count": 41
+    }
+  ]
+}

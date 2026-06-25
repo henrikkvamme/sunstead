@@ -1,0 +1,38 @@
+source_id: fda_drug_shortages
+name: FDA Drug Shortages
+source_type: government_html
+adapter: html_scraper
+enabled: true
+priority: P0
+base_url: https://www.accessdata.fda.gov/scripts/drugshortages/default.cfm
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 30
+  burst: 2
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: fda.drug_shortages_html.v1
+  chunking: html_section
+compliance:
+  robots: validate_before_scraping
+  license_notes: FDA public shortage page. Respect robots and page load.
+  pii_expected: false
+  data_minimization: Store shortage table fields and source URLs needed for supply-chain provenance.
+  retention_notes: Public official source records retained for reproducibility.
+schedule:
+  cadence: 6h
+  jitter_seconds: 900
+fixtures:
+  success: tests/fixtures/sources/fda_drug_shortages/success.html

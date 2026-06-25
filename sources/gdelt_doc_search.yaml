@@ -1,0 +1,38 @@
+source_id: gdelt_doc_search
+name: GDELT DOC Search
+source_type: news_search_api
+adapter: rest
+enabled: true
+priority: P0
+base_url: https://api.gdeltproject.org/api/v2/doc/doc?query=%28%22drug%20shortage%22%20OR%20%22pharmaceutical%20supply%20chain%22%20OR%20%22medical%20device%20shortage%22%29&mode=ArtList&format=json&maxrecords=25&sort=DateDesc&timespan=1d
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 12
+  burst: 1
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: gdelt.doc_search.v1
+  chunking: news_article_metadata
+compliance:
+  robots: not_applicable_api
+  license_notes: GDELT DOC 2.0 public JSON API returns article metadata and links. Downstream article content belongs to publishers; store metadata and short evidence spans only unless licensed.
+  pii_expected: false
+  data_minimization: Store article URL, title, seen date, source domain, language, source country, and social image metadata needed for news-signal provenance.
+  retention_notes: Public search metadata retained for reproducibility and trend/risk signal history; publisher article text is not stored by this source.
+schedule:
+  cadence: 15m
+  jitter_seconds: 120
+fixtures:
+  success: tests/fixtures/sources/gdelt_doc_search/success.json

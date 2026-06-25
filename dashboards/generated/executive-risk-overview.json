@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "executive-risk-overview",
+    "title": "Executive Risk Overview",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Open risk cases by severity",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT severity, count(*) AS cases\nFROM risk_cases\nWHERE status IN ('candidate', 'investigating', 'watch', 'confirmed', 'needs_human_review')\nGROUP BY severity\nORDER BY\n  CASE severity\n    WHEN 'critical' THEN 1\n    WHEN 'high' THEN 2\n    WHEN 'medium' THEN 3\n    WHEN 'low' THEN 4\n    ELSE 5\n  END;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Top current risk cases",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT case_key, title, risk_type, severity, status, risk_score, confidence, updated_at\nFROM risk_cases\nWHERE status IN ('candidate', 'investigating', 'watch', 'confirmed', 'needs_human_review')\nORDER BY risk_score DESC, confidence DESC, updated_at DESC\nLIMIT 20;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "New or updated alerts",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT severity, status, count(*) AS alerts, max(last_emitted_at) AS latest_alert_at\nFROM risk_alerts\nWHERE last_emitted_at >= now() - interval '7 days'\nGROUP BY severity, status\nORDER BY latest_alert_at DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Cases needing human review",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT case_key, title, risk_type, severity, risk_score, confidence, updated_at\nFROM risk_cases\nWHERE status = 'needs_human_review'\n  OR (severity IN ('critical', 'high') AND confidence < 0.80)\nORDER BY severity, risk_score DESC, updated_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

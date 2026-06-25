@@ -1,0 +1,27 @@
+uid: operational-metrics
+title: Operational Metrics
+panels:
+  - title: Events produced by topic
+    type: table
+    query: |
+      SELECT topic, sum(metric_value) AS events_produced, max(observed_at) AS latest_observed_at
+      FROM ops_metrics
+      WHERE metric_name = 'events_produced_total'
+        AND observed_at >= now() - interval '24 hours'
+      GROUP BY topic
+      ORDER BY events_produced DESC;
+  - title: Metrics by service
+    type: table
+    query: |
+      SELECT service, metric_name, sum(metric_value) AS metric_total, max(observed_at) AS latest_observed_at
+      FROM ops_metrics
+      WHERE observed_at >= now() - interval '24 hours'
+      GROUP BY service, metric_name
+      ORDER BY metric_total DESC, latest_observed_at DESC;
+  - title: Recent metric events
+    type: table
+    query: |
+      SELECT observed_at, service, source_id, topic, metric_name, metric_value, tags
+      FROM ops_metrics
+      ORDER BY observed_at DESC
+      LIMIT 50;

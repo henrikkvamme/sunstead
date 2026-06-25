@@ -1,0 +1,66 @@
+{
+  "dashboard": {
+    "uid": "operational-metrics",
+    "title": "Operational Metrics",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Events produced by topic",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT topic, sum(metric_value) AS events_produced, max(observed_at) AS latest_observed_at\nFROM ops_metrics\nWHERE metric_name = 'events_produced_total'\n  AND observed_at >= now() - interval '24 hours'\nGROUP BY topic\nORDER BY events_produced DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Metrics by service",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT service, metric_name, sum(metric_value) AS metric_total, max(observed_at) AS latest_observed_at\nFROM ops_metrics\nWHERE observed_at >= now() - interval '24 hours'\nGROUP BY service, metric_name\nORDER BY metric_total DESC, latest_observed_at DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Recent metric events",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT observed_at, service, source_id, topic, metric_name, metric_value, tags\nFROM ops_metrics\nORDER BY observed_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

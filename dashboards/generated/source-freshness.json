@@ -1,0 +1,66 @@
+{
+  "dashboard": {
+    "uid": "source-freshness",
+    "title": "Source Freshness",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Source health",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT ds.source_id, ds.priority, sh.status, sh.last_success_at, sh.freshness_lag_seconds, sh.consecutive_failures\nFROM data_sources ds\nLEFT JOIN source_health sh ON sh.source_id = ds.source_id\nWHERE ds.enabled = true\nORDER BY ds.priority, sh.status, sh.freshness_lag_seconds DESC NULLS LAST;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Source evidence coverage",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  ds.source_id,\n  ds.priority,\n  coalesce(count(DISTINCT rd.id), 0) AS raw_documents,\n  coalesce(count(DISTINCT dc.id), 0) AS document_chunks,\n  max(rd.fetched_at) AS latest_fetch_at\nFROM data_sources ds\nLEFT JOIN raw_documents rd ON rd.source_id = ds.source_id\nLEFT JOIN document_chunks dc ON dc.raw_document_id = rd.id\nWHERE ds.enabled = true\nGROUP BY ds.source_id, ds.priority\nORDER BY ds.priority, raw_documents DESC, document_chunks DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Raw documents per hour",
+        "type": "timeseries",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT date_trunc('hour', fetched_at) AS time, count(*) AS raw_documents\nFROM raw_documents\nWHERE fetched_at >= now() - interval '7 days'\nGROUP BY time\nORDER BY time;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

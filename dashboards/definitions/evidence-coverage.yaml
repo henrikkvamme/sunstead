@@ -1,0 +1,47 @@
+uid: evidence-coverage
+title: Evidence Coverage
+panels:
+  - title: Risk cases with evidence spans
+    type: table
+    query: |
+      SELECT
+        count(*) FILTER (WHERE rv.id IS NOT NULL AND cardinality(rv.evidence_span_ids) > 0) AS cases_with_evidence,
+        count(*) AS total_cases,
+        round(
+          100.0 * count(*) FILTER (WHERE rv.id IS NOT NULL AND cardinality(rv.evidence_span_ids) > 0)
+          / nullif(count(*), 0),
+          2
+        ) AS evidence_coverage_pct
+      FROM risk_cases rc
+      LEFT JOIN LATERAL (
+        SELECT id, evidence_span_ids
+        FROM risk_verdicts
+        WHERE risk_case_id = rc.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) rv ON true;
+  - title: Evidence spans by source
+    type: table
+    query: |
+      SELECT source_id, evidence_type, count(*) AS spans, avg(confidence) AS avg_confidence
+      FROM evidence_spans
+      GROUP BY source_id, evidence_type
+      ORDER BY spans DESC;
+  - title: Extraction confidence distribution
+    type: table
+    query: |
+      SELECT
+        width_bucket(confidence, 0, 1, 10) AS confidence_bucket,
+        count(*) AS spans
+      FROM evidence_spans
+      GROUP BY confidence_bucket
+      ORDER BY confidence_bucket;
+  - title: Findings requiring evidence verification
+    type: table
+    query: |
+      SELECT risk_case_id, agent_name, finding_type, critic_status, confidence, created_at
+      FROM agent_findings
+      WHERE critic_status IN ('revise', 'reject', 'needs_human_review')
+         OR confidence < 0.70
+      ORDER BY created_at DESC
+      LIMIT 50;

@@ -1,0 +1,47 @@
+source_id: openfda_device_registrationlisting
+name: openFDA Device Registration Listing
+source_type: government_api
+adapter: paginated_rest
+enabled: true
+priority: P0
+base_url: https://api.fda.gov/device/registrationlisting.json
+method: GET
+auth:
+  type: query_param
+  env: OPENFDA_API_KEY
+  param: api_key
+  required: false
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: skip_limit
+  limit_param: limit
+  offset_param: skip
+  page_size: 1000
+  max_offset: 25000
+  results_path: results
+cursor:
+  strategy: date_window
+  field: registration.expiry_date_year
+rate_limit:
+  requests_per_minute: 220
+  burst: 10
+dedupe:
+  key_fields:
+    - registration_number
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: openfda.device_registrationlisting.v1
+  chunking: json_record
+compliance:
+  robots: not_applicable_api
+  license_notes: openFDA public API. Follow openFDA terms and limits.
+  pii_expected: false
+  data_minimization: Store device, establishment, registration, and listing fields needed for provenance.
+  retention_notes: Public official source records retained for reproducibility.
+schedule:
+  cadence: 7d
+  jitter_seconds: 3600
+fixtures:
+  success: tests/fixtures/sources/openfda_device_registrationlisting/success.json

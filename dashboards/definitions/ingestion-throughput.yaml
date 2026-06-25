@@ -1,0 +1,40 @@
+uid: ingestion-throughput
+title: Ingestion Throughput
+panels:
+  - title: Raw documents per hour
+    type: timeseries
+    query: |
+      SELECT date_trunc('hour', fetched_at) AS time, count(*) AS raw_documents
+      FROM raw_documents
+      WHERE fetched_at >= now() - interval '7 days'
+      GROUP BY time
+      ORDER BY time;
+  - title: Source runs by status
+    type: table
+    query: |
+      SELECT source_id, status, count(*) AS runs, max(started_at) AS latest_run_at
+      FROM source_runs
+      WHERE started_at >= now() - interval '7 days'
+      GROUP BY source_id, status
+      ORDER BY latest_run_at DESC;
+  - title: Documents created versus unchanged
+    type: table
+    query: |
+      SELECT
+        source_id,
+        sum(documents_created) AS documents_created,
+        sum(documents_unchanged) AS documents_unchanged,
+        sum(error_count) AS errors
+      FROM source_runs
+      WHERE started_at >= now() - interval '7 days'
+      GROUP BY source_id
+      ORDER BY documents_created DESC;
+  - title: Parser backlog
+    type: table
+    query: |
+      SELECT rd.source_id, count(DISTINCT rd.id) AS unparsed_raw_documents
+      FROM raw_documents rd
+      LEFT JOIN document_chunks dc ON dc.raw_document_id = rd.id
+      WHERE dc.id IS NULL
+      GROUP BY rd.source_id
+      ORDER BY unparsed_raw_documents DESC;

@@ -1,0 +1,34 @@
+{
+  "cik": "0000078003",
+  "entityType": "operating",
+  "sic": "2834",
+  "sicDescription": "Pharmaceutical Preparations",
+  "ownerOrg": "03 Life Sciences",
+  "name": "PFIZER INC",
+  "tickers": ["PFE"],
+  "exchanges": ["NYSE"],
+  "category": "Large accelerated filer",
+  "fiscalYearEnd": "1231",
+  "filings": {
+    "recent": {
+      "accessionNumber": ["0000078003-26-000045", "0000078003-26-000032", "0000078003-26-000018"],
+      "filingDate": ["2026-05-07", "2026-02-28", "2026-01-09"],
+      "reportDate": ["2026-03-31", "2025-12-31", "2026-01-09"],
+      "acceptanceDateTime": [
+        "2026-05-07T16:13:42.000Z",
+        "2026-02-28T06:21:10.000Z",
+        "2026-01-09T08:45:03.000Z"
+      ],
+      "act": ["34", "34", "34"],
+      "form": ["10-Q", "10-K", "8-K"],
+      "fileNumber": ["001-03619", "001-03619", "001-03619"],
+      "filmNumber": ["26928111", "26604173", "26519402"],
+      "items": ["", "", "2.02,9.01"],
+      "size": [8412000, 21456000, 438000],
+      "isXBRL": [1, 1, 1],
+      "isInlineXBRL": [1, 1, 1],
+      "primaryDocument": ["pfe-20260331.htm", "pfe-20251231.htm", "pfe-20260109.htm"],
+      "primaryDocDescription": ["FORM 10-Q", "FORM 10-K", "FORM 8-K"]
+    }
+  }
+}

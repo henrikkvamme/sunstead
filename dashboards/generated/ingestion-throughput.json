@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "ingestion-throughput",
+    "title": "Ingestion Throughput",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Raw documents per hour",
+        "type": "timeseries",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT date_trunc('hour', fetched_at) AS time, count(*) AS raw_documents\nFROM raw_documents\nWHERE fetched_at >= now() - interval '7 days'\nGROUP BY time\nORDER BY time;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Source runs by status",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT source_id, status, count(*) AS runs, max(started_at) AS latest_run_at\nFROM source_runs\nWHERE started_at >= now() - interval '7 days'\nGROUP BY source_id, status\nORDER BY latest_run_at DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Documents created versus unchanged",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  source_id,\n  sum(documents_created) AS documents_created,\n  sum(documents_unchanged) AS documents_unchanged,\n  sum(error_count) AS errors\nFROM source_runs\nWHERE started_at >= now() - interval '7 days'\nGROUP BY source_id\nORDER BY documents_created DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Parser backlog",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT rd.source_id, count(DISTINCT rd.id) AS unparsed_raw_documents\nFROM raw_documents rd\nLEFT JOIN document_chunks dc ON dc.raw_document_id = rd.id\nWHERE dc.id IS NULL\nGROUP BY rd.source_id\nORDER BY unparsed_raw_documents DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

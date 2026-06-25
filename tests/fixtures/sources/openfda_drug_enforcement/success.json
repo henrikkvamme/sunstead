@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "recall_number": "D-0000-2026",
+      "product_description": "HUMALOG insulin lispro injection, 100 units/mL",
+      "classification": "Class II",
+      "status": "Ongoing",
+      "reason_for_recall": "CGMP deviations",
+      "recalling_firm": "Eli Lilly and Company",
+      "distribution_pattern": "Nationwide in the USA",
+      "report_date": "20260601",
+      "openfda": {
+        "product_ndc": ["0002-8215"]
+      }
+    }
+  ]
+}

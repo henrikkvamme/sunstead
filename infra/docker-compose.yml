@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+      POSTGRES_DB: platform
+    ports:
+      - "55432:5432"
+    volumes:
+      - platform-postgres:/var/lib/postgresql/data
+
+  redpanda:
+    image: redpandadata/redpanda:v24.3.5
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://localhost:19092
+    ports:
+      - "19092:9092"
+      - "19644:9644"
+
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/platform
+    ports:
+      - "17474:7474"
+      - "17687:7687"
+    volumes:
+      - platform-neo4j:/data
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: platform
+      GRAFANA_POSTGRES_HOST: postgres
+      GRAFANA_POSTGRES_PORT: "5432"
+      GRAFANA_POSTGRES_USER: platform
+      GRAFANA_POSTGRES_PASSWORD: platform
+      GRAFANA_POSTGRES_DB: platform
+      GRAFANA_POSTGRES_SSLMODE: disable
+    ports:
+      - "13000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../dashboards/generated:/var/lib/grafana/dashboards/platform:ro
+
+volumes:
+  platform-postgres:
+  platform-neo4j:

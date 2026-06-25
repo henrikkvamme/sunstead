@@ -1,0 +1,102 @@
+{
+  "dashboard": {
+    "uid": "low-confidence-review",
+    "title": "Low-Confidence Review Queue",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Entity mentions needing review",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT entity_type, mention_text, resolution_status, resolution_confidence, resolution_method, created_at\nFROM entity_mentions\nWHERE needs_review = true\n   OR coalesce(resolution_confidence, 0) < 0.78\nORDER BY coalesce(resolution_confidence, 0) ASC, created_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Canonical entities needing review",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT entity_type, canonical_key, display_name, confidence, review_reason, updated_at\nFROM canonical_entities\nWHERE needs_review = true\nORDER BY confidence ASC, updated_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Low-confidence graph relationships",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  graph_key,\n  neo4j_label_or_type,\n  nullif(payload->'properties'->>'confidence', '')::numeric AS confidence,\n  started_at\nFROM graph_upsert_audit\nWHERE upsert_type = 'relationship'\n  AND nullif(payload->'properties'->>'confidence', '')::numeric < 0.78\nORDER BY confidence ASC, started_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Open human-review tasks",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT target_table, target_id, review_type, reason, priority, created_at\nFROM human_review_queue\nWHERE status = 'open'\nORDER BY priority, created_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 5,
+        "title": "Human feedback activity",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT target_table, feedback_type, decision, count(*) AS feedback_items, max(created_at) AS latest_feedback_at\nFROM human_feedback\nGROUP BY target_table, feedback_type, decision\nORDER BY latest_feedback_at DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

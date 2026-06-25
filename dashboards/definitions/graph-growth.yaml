@@ -1,0 +1,27 @@
+uid: graph-growth
+title: Graph Growth
+panels:
+  - title: Graph upserts by status
+    type: table
+    query: |
+      SELECT status, upsert_type, count(*) AS upserts
+      FROM graph_upsert_audit
+      GROUP BY status, upsert_type
+      ORDER BY upserts DESC;
+  - title: Graph write failures
+    type: table
+    query: |
+      SELECT graph_key, neo4j_label_or_type, error, started_at
+      FROM graph_upsert_audit
+      WHERE status = 'failed'
+      ORDER BY started_at DESC
+      LIMIT 50;
+  - title: Neo4j graph totals
+    type: table
+    query: |
+      SELECT metric_name, metric_value, observed_at
+      FROM ops_metrics
+      WHERE service = 'neo4j'
+        AND metric_name IN ('graph_nodes_total', 'graph_relationships_total')
+      ORDER BY observed_at DESC, metric_name
+      LIMIT 50;

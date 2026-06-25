@@ -1,0 +1,4 @@
+period,commodity_name,unit,value,updated_on,source_table
+2026M05,"Crude oil, Brent",($/bbl),64.12,"Updated on June 02, 2026",Monthly Prices
+2026M05,"Natural gas, US",($/mmbtu),3.48,"Updated on June 02, 2026",Monthly Prices
+2026M05,"DAP",($/mt),612.50,"Updated on June 02, 2026",Monthly Prices

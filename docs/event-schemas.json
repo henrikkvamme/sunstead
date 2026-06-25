@@ -1,0 +1,1152 @@
+{
+  "envelope": {
+    "$defs": {
+      "EventSource": {
+        "additionalProperties": false,
+        "properties": {
+          "instance_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Instance Id"
+          },
+          "service": {
+            "title": "Service",
+            "type": "string"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Id"
+          }
+        },
+        "required": ["service"],
+        "title": "EventSource",
+        "type": "object"
+      },
+      "TraceMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "raw_document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Raw Document Id"
+          },
+          "source_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Run Id"
+          },
+          "span_id": {
+            "format": "uuid",
+            "title": "Span Id",
+            "type": "string"
+          },
+          "trace_id": {
+            "format": "uuid",
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "title": "TraceMetadata",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "causation_id": {
+        "anyOf": [
+          {
+            "format": "uuid",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Causation Id"
+      },
+      "correlation_id": {
+        "format": "uuid",
+        "title": "Correlation Id",
+        "type": "string"
+      },
+      "emitted_at": {
+        "format": "date-time",
+        "title": "Emitted At",
+        "type": "string"
+      },
+      "event_id": {
+        "format": "uuid",
+        "title": "Event Id",
+        "type": "string"
+      },
+      "event_type": {
+        "title": "Event Type",
+        "type": "string"
+      },
+      "idempotency_key": {
+        "title": "Idempotency Key",
+        "type": "string"
+      },
+      "payload": {
+        "additionalProperties": true,
+        "title": "Payload",
+        "type": "object"
+      },
+      "schema_version": {
+        "const": 1,
+        "default": 1,
+        "title": "Schema Version",
+        "type": "integer"
+      },
+      "source": {
+        "$ref": "#/$defs/EventSource"
+      },
+      "trace": {
+        "$ref": "#/$defs/TraceMetadata"
+      }
+    },
+    "required": ["event_type", "source", "idempotency_key", "payload"],
+    "title": "EventEnvelope",
+    "type": "object"
+  },
+  "payloads": {
+    "agents.audit_log": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "agent_names": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Agent Names",
+          "type": "array"
+        },
+        "case_key": {
+          "title": "Case Key",
+          "type": "string"
+        },
+        "finding_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Finding Ids",
+          "type": "array"
+        },
+        "risk_case_id": {
+          "format": "uuid",
+          "title": "Risk Case Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": ["risk_case_id", "case_key", "action", "status"],
+      "title": "AgentAuditLogPayload",
+      "type": "object"
+    },
+    "dashboard.graph_chat_answered": {
+      "additionalProperties": false,
+      "properties": {
+        "audit_id": {
+          "format": "uuid",
+          "title": "Audit Id",
+          "type": "string"
+        },
+        "graph_stats": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Graph Stats",
+          "type": "object"
+        },
+        "input_hash": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "input_length": {
+          "minimum": 0,
+          "title": "Input Length",
+          "type": "integer"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "neighbor_node_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Neighbor Node Ids",
+          "type": "array"
+        },
+        "output_hash": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Output Hash",
+          "type": "string"
+        },
+        "output_schema": {
+          "title": "Output Schema",
+          "type": "string"
+        },
+        "output_schema_version": {
+          "title": "Output Schema Version",
+          "type": "integer"
+        },
+        "related_node_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Related Node Ids",
+          "type": "array"
+        },
+        "requested_node_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requested Node Id"
+        },
+        "safety": {
+          "additionalProperties": true,
+          "title": "Safety",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "selected_node_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Selected Node Id"
+        },
+        "source_refs": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_id",
+        "input_hash",
+        "input_length",
+        "output_hash",
+        "output_schema",
+        "output_schema_version",
+        "status"
+      ],
+      "title": "DashboardGraphChatAnsweredPayload",
+      "type": "object"
+    },
+    "graph.node_upsert": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_span_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Span Id"
+        },
+        "extraction_run_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extraction Run Id"
+        },
+        "graph_node_key": {
+          "title": "Graph Node Key",
+          "type": "string"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Labels",
+          "type": "array"
+        },
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "source_document_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Document Id"
+        }
+      },
+      "required": ["graph_node_key", "labels", "confidence"],
+      "title": "GraphNodeUpsertPayload",
+      "type": "object"
+    },
+    "graph.relationship_upsert": {
+      "additionalProperties": false,
+      "properties": {
+        "from_key": {
+          "title": "From Key",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "relationship_key": {
+          "title": "Relationship Key",
+          "type": "string"
+        },
+        "relationship_type": {
+          "title": "Relationship Type",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "to_key": {
+          "title": "To Key",
+          "type": "string"
+        }
+      },
+      "required": ["relationship_key", "from_key", "to_key", "relationship_type", "properties"],
+      "title": "GraphRelationshipUpsertPayload",
+      "type": "object"
+    },
+    "ingest.document_parsed": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk_count": {
+          "minimum": 0,
+          "title": "Chunk Count",
+          "type": "integer"
+        },
+        "document_chunk_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Document Chunk Ids",
+          "type": "array"
+        },
+        "parser_profile": {
+          "title": "Parser Profile",
+          "type": "string"
+        },
+        "raw_document_id": {
+          "format": "uuid",
+          "title": "Raw Document Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        }
+      },
+      "required": ["raw_document_id", "parser_profile", "chunk_count"],
+      "title": "DocumentParsedPayload",
+      "type": "object"
+    },
+    "ingest.extraction_completed": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_name": {
+          "title": "Agent Name",
+          "type": "string"
+        },
+        "document_chunk_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Document Chunk Id"
+        },
+        "entity_mention_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Entity Mention Ids",
+          "type": "array"
+        },
+        "evidence_span_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Evidence Span Ids",
+          "type": "array"
+        },
+        "extraction_run_id": {
+          "format": "uuid",
+          "title": "Extraction Run Id",
+          "type": "string"
+        },
+        "output_schema": {
+          "title": "Output Schema",
+          "type": "string"
+        },
+        "raw_document_id": {
+          "format": "uuid",
+          "title": "Raw Document Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": ["extraction_run_id", "raw_document_id", "agent_name", "output_schema", "status"],
+      "title": "ExtractionCompletedPayload",
+      "type": "object"
+    },
+    "ingest.jobs": {
+      "additionalProperties": false,
+      "properties": {
+        "config_hash": {
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "cursor": {
+          "additionalProperties": true,
+          "title": "Cursor",
+          "type": "object"
+        },
+        "requested_at": {
+          "format": "date-time",
+          "title": "Requested At",
+          "type": "string"
+        },
+        "run_type": {
+          "enum": ["scheduled", "manual", "backfill", "replay", "test"],
+          "title": "Run Type",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_run_id": {
+          "format": "uuid",
+          "title": "Source Run Id",
+          "type": "string"
+        }
+      },
+      "required": ["source_id", "source_run_id", "run_type", "config_hash", "requested_at"],
+      "title": "IngestJobPayload",
+      "type": "object"
+    },
+    "ingest.raw_document_created": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "content_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Type"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "raw_document_id": {
+          "format": "uuid",
+          "title": "Raw Document Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_run_id": {
+          "format": "uuid",
+          "title": "Source Run Id",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        }
+      },
+      "required": ["source_id", "source_run_id", "raw_document_id", "content_hash", "fetched_at"],
+      "title": "RawDocumentCreatedPayload",
+      "type": "object"
+    },
+    "ops.deadletter": {
+      "additionalProperties": false,
+      "properties": {
+        "consumer_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Consumer Group"
+        },
+        "error_message": {
+          "title": "Error Message",
+          "type": "string"
+        },
+        "error_type": {
+          "title": "Error Type",
+          "type": "string"
+        },
+        "failed_at": {
+          "format": "date-time",
+          "title": "Failed At",
+          "type": "string"
+        },
+        "original_event": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Event"
+        },
+        "original_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Key"
+        },
+        "original_topic": {
+          "title": "Original Topic",
+          "type": "string"
+        },
+        "original_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Value"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": ["original_topic", "stage", "error_type", "error_message", "retryable"],
+      "title": "DeadLetterPayload",
+      "type": "object"
+    },
+    "ops.metrics": {
+      "additionalProperties": false,
+      "properties": {
+        "consumer_group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Consumer Group"
+        },
+        "idempotency_key": {
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "metric_name": {
+          "title": "Metric Name",
+          "type": "string"
+        },
+        "metric_value": {
+          "title": "Metric Value",
+          "type": "number"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Id"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "object"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Topic"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": ["metric_name", "metric_value", "service", "idempotency_key"],
+      "title": "OpsMetricPayload",
+      "type": "object"
+    },
+    "risk.agent_findings": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_name": {
+          "title": "Agent Name",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_span_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Evidence Span Ids",
+          "type": "array"
+        },
+        "finding_id": {
+          "format": "uuid",
+          "title": "Finding Id",
+          "type": "string"
+        },
+        "finding_type": {
+          "title": "Finding Type",
+          "type": "string"
+        },
+        "input_hash": {
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "model_name": {
+          "title": "Model Name",
+          "type": "string"
+        },
+        "output_schema": {
+          "title": "Output Schema",
+          "type": "string"
+        },
+        "output_schema_version": {
+          "title": "Output Schema Version",
+          "type": "integer"
+        },
+        "prompt_hash": {
+          "title": "Prompt Hash",
+          "type": "string"
+        },
+        "risk_case_id": {
+          "format": "uuid",
+          "title": "Risk Case Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "risk_case_id",
+        "agent_name",
+        "model_name",
+        "prompt_hash",
+        "input_hash",
+        "output_schema",
+        "output_schema_version",
+        "finding_type",
+        "finding_id",
+        "confidence",
+        "status"
+      ],
+      "title": "AgentFindingPayload",
+      "type": "object"
+    },
+    "risk.alerts": {
+      "additionalProperties": false,
+      "properties": {
+        "alert_key": {
+          "title": "Alert Key",
+          "type": "string"
+        },
+        "alert_type": {
+          "title": "Alert Type",
+          "type": "string"
+        },
+        "channels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "risk_case_id": {
+          "format": "uuid",
+          "title": "Risk Case Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": ["alert_key", "risk_case_id", "alert_type", "severity", "status", "title"],
+      "title": "RiskAlertPayload",
+      "type": "object"
+    },
+    "risk.candidates": {
+      "$defs": {
+        "RiskScope": {
+          "additionalProperties": false,
+          "properties": {
+            "entity_id": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Entity Id"
+            },
+            "graph_key": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Graph Key"
+            },
+            "schema_version": {
+              "const": 1,
+              "default": 1,
+              "title": "Schema Version",
+              "type": "integer"
+            },
+            "type": {
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": ["type"],
+          "title": "RiskScope",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "candidate_key": {
+          "title": "Candidate Key",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_span_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Evidence Span Ids",
+          "type": "array"
+        },
+        "initial_score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Initial Score",
+          "type": "number"
+        },
+        "risk_type": {
+          "title": "Risk Type",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "scope": {
+          "$ref": "#/$defs/RiskScope"
+        },
+        "signals": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Signals",
+          "type": "array"
+        }
+      },
+      "required": ["candidate_key", "risk_type", "scope", "initial_score", "confidence"],
+      "title": "RiskCandidatePayload",
+      "type": "object"
+    },
+    "risk.case_created": {
+      "additionalProperties": false,
+      "properties": {
+        "case_key": {
+          "title": "Case Key",
+          "type": "string"
+        },
+        "confidence": {
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_span_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Evidence Span Ids",
+          "type": "array"
+        },
+        "risk_case_id": {
+          "format": "uuid",
+          "title": "Risk Case Id",
+          "type": "string"
+        },
+        "risk_score": {
+          "title": "Risk Score",
+          "type": "number"
+        },
+        "risk_type": {
+          "title": "Risk Type",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "risk_case_id",
+        "case_key",
+        "risk_type",
+        "severity",
+        "status",
+        "risk_score",
+        "confidence"
+      ],
+      "title": "RiskCaseCreatedPayload",
+      "type": "object"
+    },
+    "risk.verdicts": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_span_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Evidence Span Ids",
+          "type": "array"
+        },
+        "recommended_actions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Recommended Actions",
+          "type": "array"
+        },
+        "risk_case_id": {
+          "format": "uuid",
+          "title": "Risk Case Id",
+          "type": "string"
+        },
+        "risk_score": {
+          "title": "Risk Score",
+          "type": "number"
+        },
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "verdict_type": {
+          "title": "Verdict Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "risk_case_id",
+        "verdict_type",
+        "severity",
+        "risk_score",
+        "confidence",
+        "summary"
+      ],
+      "title": "RiskVerdictPayload",
+      "type": "object"
+    }
+  },
+  "schema_version": 1
+}

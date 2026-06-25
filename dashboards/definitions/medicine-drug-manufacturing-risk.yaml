@@ -1,0 +1,45 @@
+uid: medicine-drug-manufacturing-risk
+title: Medicine and Drug Manufacturing Risk
+panels:
+  - title: Highest-risk drugs, ingredients, manufacturers, and facilities
+    type: table
+    query: |
+      SELECT
+        ce.display_name,
+        ce.entity_type,
+        rc.risk_type,
+        rc.severity,
+        rc.status,
+        rc.risk_score,
+        rc.confidence,
+        rc.updated_at
+      FROM risk_cases rc
+      JOIN canonical_entities ce ON ce.id = rc.scope_entity_id
+      WHERE rc.scope_type IN ('Drug', 'ActiveIngredient', 'Manufacturer', 'Facility')
+      ORDER BY rc.risk_score DESC, rc.confidence DESC
+      LIMIT 50;
+  - title: Recall and quality cases
+    type: table
+    query: |
+      SELECT case_key, title, severity, status, risk_score, confidence, updated_at
+      FROM risk_cases
+      WHERE risk_type IN ('recall_quality', 'regulatory')
+      ORDER BY risk_score DESC, updated_at DESC
+      LIMIT 50;
+  - title: Shortage cases
+    type: table
+    query: |
+      SELECT case_key, title, severity, status, risk_score, confidence, updated_at
+      FROM risk_cases
+      WHERE risk_type = 'shortage'
+      ORDER BY risk_score DESC, updated_at DESC
+      LIMIT 50;
+  - title: Manufacturer and facility entities needing review
+    type: table
+    query: |
+      SELECT entity_type, canonical_key, display_name, confidence, review_reason, updated_at
+      FROM canonical_entities
+      WHERE entity_type IN ('Manufacturer', 'Facility')
+        AND needs_review = true
+      ORDER BY confidence ASC, updated_at DESC
+      LIMIT 50;

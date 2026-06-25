@@ -1,0 +1,47 @@
+source_id: un_comtrade_trade_flows
+name: UN Comtrade Trade Flows
+source_type: trade_flow_api
+adapter: rest
+enabled: true
+priority: P2
+base_url: https://comtradeapi.un.org/data/v1/get/C/A/HS?reporterCode=842&period=2025&partnerCode=0&cmdCode=3004&flowCode=M&includeDesc=true
+method: GET
+auth:
+  type: header
+  env: UN_COMTRADE_API_KEY
+  header: Ocp-Apim-Subscription-Key
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+  results_path: data
+cursor:
+  strategy: date_watermark
+  field: period
+  lag_seconds: 2592000
+rate_limit:
+  requests_per_minute: 30
+  burst: 1
+dedupe:
+  key_fields:
+    - refPeriodId
+    - reporterCode
+    - partnerCode
+    - cmdCode
+    - flowCode
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: uncomtrade.trade_flows.v1
+  chunking: trade_flow_observation
+compliance:
+  robots: not_applicable_api
+  license_notes: UN Comtrade API public trade statistics endpoint. Live requests require a subscription key and must follow Comtrade API terms, subscription tier limits, and attribution requirements.
+  pii_expected: false
+  data_minimization: Store trade period, reporter/partner identifiers, HS commodity code and description, flow direction, trade value, quantity, weight, and source flags needed for input and supply-chain trade-flow provenance.
+  retention_notes: Public aggregate trade statistics retained for reproducible supply-chain exposure history; raw API records are content-hashed to track corrections or revisions.
+schedule:
+  cadence: 1d
+  jitter_seconds: 3600
+fixtures:
+  success: tests/fixtures/sources/un_comtrade_trade_flows/success.json

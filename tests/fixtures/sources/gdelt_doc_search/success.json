@@ -1,0 +1,23 @@
+{
+  "articles": [
+    {
+      "url": "https://example-news.test/business/drug-shortage-manufacturer-delay",
+      "url_mobile": "https://example-news.test/business/drug-shortage-manufacturer-delay/amp",
+      "title": "Drug shortage deepens after manufacturer reports production delay",
+      "seendate": "20260623T094500Z",
+      "socialimage": "https://example-news.test/images/drug-shortage.jpg",
+      "domain": "example-news.test",
+      "language": "English",
+      "sourcecountry": "United States"
+    },
+    {
+      "url": "https://example-logistics.test/news/port-strike-medical-supplies",
+      "title": "Port strike threatens medical supply shipments",
+      "seendate": "20260623T101500Z",
+      "socialimage": "https://example-logistics.test/images/port.jpg",
+      "domain": "example-logistics.test",
+      "language": "English",
+      "sourcecountry": "United Kingdom"
+    }
+  ]
+}

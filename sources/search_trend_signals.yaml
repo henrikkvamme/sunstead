@@ -1,0 +1,38 @@
+source_id: search_trend_signals
+name: Search and News Trend Signals
+source_type: news_volume_trend_api
+adapter: rest
+enabled: true
+priority: P2
+base_url: https://api.gdeltproject.org/api/v2/doc/doc?query=%28%22drug%20shortage%22%20OR%20%22pharmaceutical%20supply%20chain%22%20OR%20%22medical%20device%20shortage%22%20OR%20%22port%20strike%22%29&mode=timelinevol&format=json&timespan=1d
+method: GET
+auth:
+  type: none
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 12
+  burst: 1
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: gdelt.search_trends.v1
+  chunking: trend_signal_observation
+compliance:
+  robots: not_applicable_api
+  license_notes: GDELT DOC 2.0 public timeline-volume API. Use as a public news-volume/search-trend proxy; downstream publisher article content remains owned by publishers and is not stored by this source.
+  pii_expected: false
+  data_minimization: Store timeline bucket, query text, normalized volume/count value, window, mode, and source API metadata needed for trend-signal provenance.
+  retention_notes: Public aggregate trend observations retained for reproducible risk-signal history; raw API responses are content-hashed to track corrections or empty windows.
+schedule:
+  cadence: 15m
+  jitter_seconds: 120
+fixtures:
+  success: tests/fixtures/sources/search_trend_signals/success.json

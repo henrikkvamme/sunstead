@@ -1,0 +1,84 @@
+{
+  "dashboard": {
+    "uid": "mcp-audit-activity",
+    "title": "MCP Audit Activity",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "5m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "MCP actions by status",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT action, status, destructive, count(*) AS actions, max(started_at) AS latest_started_at\nFROM mcp_audit_log\nWHERE started_at >= now() - interval '7 days'\nGROUP BY action, status, destructive\nORDER BY actions DESC;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Destructive actions pending approval",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT action, project, service_name, actor, started_at\nFROM mcp_audit_log\nWHERE destructive = true\n  AND approval_id IS NULL\n  AND status IN ('planned', 'pending_approval')\nORDER BY started_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 3,
+        "title": "Failed MCP actions",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT action, project, service_name, error, started_at\nFROM mcp_audit_log\nWHERE status = 'failed'\nORDER BY started_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Credential-adjacent access attempts",
+        "type": "table",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT action, project, service_name, actor, status, started_at\nFROM mcp_audit_log\nWHERE action ILIKE '%credential%'\n  OR action ILIKE '%connection%'\n  OR action ILIKE '%secret%'\nORDER BY started_at DESC\nLIMIT 50;\n",
+            "format": "table"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

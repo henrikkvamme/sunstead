@@ -1,0 +1,48 @@
+uid: low-confidence-review
+title: Low-Confidence Review Queue
+panels:
+  - title: Entity mentions needing review
+    type: table
+    query: |
+      SELECT entity_type, mention_text, resolution_status, resolution_confidence, resolution_method, created_at
+      FROM entity_mentions
+      WHERE needs_review = true
+         OR coalesce(resolution_confidence, 0) < 0.78
+      ORDER BY coalesce(resolution_confidence, 0) ASC, created_at DESC
+      LIMIT 50;
+  - title: Canonical entities needing review
+    type: table
+    query: |
+      SELECT entity_type, canonical_key, display_name, confidence, review_reason, updated_at
+      FROM canonical_entities
+      WHERE needs_review = true
+      ORDER BY confidence ASC, updated_at DESC
+      LIMIT 50;
+  - title: Low-confidence graph relationships
+    type: table
+    query: |
+      SELECT
+        graph_key,
+        neo4j_label_or_type,
+        nullif(payload->'properties'->>'confidence', '')::numeric AS confidence,
+        started_at
+      FROM graph_upsert_audit
+      WHERE upsert_type = 'relationship'
+        AND nullif(payload->'properties'->>'confidence', '')::numeric < 0.78
+      ORDER BY confidence ASC, started_at DESC
+      LIMIT 50;
+  - title: Open human-review tasks
+    type: table
+    query: |
+      SELECT target_table, target_id, review_type, reason, priority, created_at
+      FROM human_review_queue
+      WHERE status = 'open'
+      ORDER BY priority, created_at DESC
+      LIMIT 50;
+  - title: Human feedback activity
+    type: table
+    query: |
+      SELECT target_table, feedback_type, decision, count(*) AS feedback_items, max(created_at) AS latest_feedback_at
+      FROM human_feedback
+      GROUP BY target_table, feedback_type, decision
+      ORDER BY latest_feedback_at DESC;

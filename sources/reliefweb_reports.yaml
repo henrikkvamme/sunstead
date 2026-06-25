@@ -1,0 +1,40 @@
+source_id: reliefweb_reports
+name: ReliefWeb Reports
+source_type: humanitarian_report_api
+adapter: rest
+enabled: true
+priority: P1
+base_url: "https://api.reliefweb.int/v2/reports?query[value]=medicine%20OR%20pharmaceutical%20OR%20%22drug%20shortage%22%20OR%20%22medical%20supplies%22%20OR%20%22supply%20chain%22%20OR%20logistics&query[operator]=OR&preset=latest&profile=list&fields[include][]=url&fields[include][]=source.name&fields[include][]=source.shortname&fields[include][]=country.name&fields[include][]=primary_country.name&fields[include][]=theme.name&fields[include][]=disaster.name&fields[include][]=format.name&fields[include][]=language.name&fields[include][]=date.original&fields[include][]=date.created&fields[include][]=date.changed&limit=75"
+method: GET
+auth:
+  type: query_param
+  env: RELIEFWEB_APPNAME
+  param: appname
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: none
+cursor:
+  strategy: content_hash
+rate_limit:
+  requests_per_minute: 20
+  burst: 2
+dedupe:
+  key_fields:
+    - canonical_url
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: reliefweb.reports.v1
+  chunking: humanitarian_report_metadata
+compliance:
+  robots: not_applicable_api_terms
+  license_notes: ReliefWeb API v2 public read-only API. API calls require appname, and from 1 November 2025 appnames must be pre-approved. Respect original source rights for partner-contributed report content.
+  pii_expected: false
+  data_minimization: Store report identifiers, title, URL, dates, source, country, theme, disaster, format, and language metadata needed for humanitarian supply-chain signal provenance.
+  retention_notes: Public report metadata retained for reproducibility and trend/risk signal history; full partner report bodies are not stored by this source.
+schedule:
+  cadence: 1h
+  jitter_seconds: 300
+fixtures:
+  success: tests/fixtures/sources/reliefweb_reports/success.json

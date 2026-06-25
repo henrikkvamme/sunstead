@@ -1,0 +1,49 @@
+source_id: eia_energy_prices
+name: EIA Energy Prices
+source_type: government_energy_api
+adapter: paginated_rest
+enabled: true
+priority: P1
+base_url: "https://api.eia.gov/v2/petroleum/pri/gnd/data/?frequency=weekly&data[0]=value&facets[product][]=EPD2D&facets[duoarea][]=NUS&sort[0][column]=period&sort[0][direction]=desc"
+method: GET
+auth:
+  type: query_param
+  env: EIA_API_KEY
+  param: api_key
+headers:
+  User-Agent: "${PLATFORM_USER_AGENT}"
+pagination:
+  type: skip_limit
+  limit_param: length
+  offset_param: offset
+  page_size: 5000
+  results_path: response.data
+cursor:
+  strategy: date_watermark
+  field: period
+  lag_seconds: 604800
+rate_limit:
+  requests_per_minute: 60
+  burst: 2
+dedupe:
+  key_fields:
+    - period
+    - product
+    - duoarea
+    - process
+  content_hash: sha256
+  canonical_url: true
+parser:
+  profile: eia.energy_prices.v1
+  chunking: energy_price_observation
+compliance:
+  robots: not_applicable_api
+  license_notes: EIA Open Data API v2 public government dataset. Live requests require a registered API key passed from EIA_API_KEY; follow EIA API terms and documented pagination limits.
+  pii_expected: false
+  data_minimization: Store energy price period, value, unit, product/process/area metadata, and source URL needed for manufacturing and transport input-cost provenance.
+  retention_notes: Public EIA price observations retained for reproducible input-cost risk history; raw API records are content-hashed to track corrections.
+schedule:
+  cadence: 1d
+  jitter_seconds: 900
+fixtures:
+  success: tests/fixtures/sources/eia_energy_prices/success.json
