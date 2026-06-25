@@ -1,5 +1,26 @@
 export { getProcessEnv, readServerEnv, serverEnv, type SunsteadServerEnv } from "#/env";
 export {
+  carboplatinDemoCaveat,
+  carboplatinDemoScenario,
+  carboplatinDemoReplaySteps,
+  carboplatinManagedInvestigationDemoResult,
+  buildCarboplatinDemoStreamingSystemPrompt,
+  getCarboplatinDemoReplayState,
+  isSupplyRiskAgentScenario,
+  normalizeCarboplatinManagedInvestigationResult,
+  type CarboplatinDemoMessage,
+  type CarboplatinDemoReplayPhase,
+  type CarboplatinDemoReplayState,
+  type CarboplatinDemoReplayStep,
+  type CarboplatinDemoToolCall,
+  type ManagedInvestigationDemoResult,
+  type SupplyRiskAgentScenario,
+} from "./carboplatin-demo";
+export {
+  createCarboplatinDemoStreamResponse,
+  type CreateCarboplatinDemoStreamResponseOptions,
+} from "./carboplatin-demo-stream";
+export {
   anthropicApiVersion,
   buildClaudeManagedAgentUserEvent,
   ClaudeManagedAgentClient,
@@ -18,9 +39,12 @@ export {
   type StartClaudeManagedSourceInvestigationOptions,
 } from "./claude-managed-agent";
 export {
+  buildCarboplatinDemoAgentInstructions,
+  buildCarboplatinManagedInvestigationPrompt,
   buildNodeInvestigationPrompt,
   buildSupplyRiskAgentInstructions,
   defaultSupplyRiskPrompt,
+  type BuildSupplyRiskAgentInstructionsOptions,
   type NodeInvestigationPromptInput,
 } from "./prompts";
 export {
@@ -36,6 +60,7 @@ export {
   type SupplyGraphSearchInput,
 } from "./supply-graph";
 export {
+  createSupplyRiskAnthropicModel,
   createSupplyRiskAgent,
   createSupplyRiskAgentUIResponse,
   defaultSupplyRiskAgentModel,

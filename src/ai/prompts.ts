@@ -1,10 +1,26 @@
-import { selectedMedicineId } from "#/data/carboplatin-risk-scenario";
+import {
+  investigationTargetId,
+  riskPathBase,
+  selectedMedicineId,
+} from "#/data/carboplatin-risk-scenario";
 
+import { isSupplyRiskAgentScenario, type SupplyRiskAgentScenario } from "./carboplatin-demo";
 import { getSupplyGraphNodeContext } from "./supply-graph";
 
 export const defaultSupplyRiskPrompt = `Start with ${selectedMedicineId}, identify the strongest current supply-risk path, and explain what evidence supports it.`;
 
-export function buildSupplyRiskAgentInstructions(today: Date = new Date()) {
+export type BuildSupplyRiskAgentInstructionsOptions = {
+  scenario?: SupplyRiskAgentScenario;
+};
+
+export function buildSupplyRiskAgentInstructions(
+  today: Date = new Date(),
+  options: BuildSupplyRiskAgentInstructionsOptions = {},
+) {
+  if (isSupplyRiskAgentScenario(options.scenario)) {
+    return buildCarboplatinDemoAgentInstructions(today);
+  }
+
   const date = today.toISOString().slice(0, 10);
 
   return `You are the Sanitas medicine supply-risk agent.
@@ -21,6 +37,59 @@ Focus on agent behavior that helps operators investigate medicine availability r
 - never provide clinical treatment advice or patient-specific recommendations.
 
 Keep responses concise, operational, and explicit about confidence.`;
+}
+
+export function buildCarboplatinDemoAgentInstructions(today: Date = new Date()) {
+  const date = today.toISOString().slice(0, 10);
+
+  return `You are the Sanitas supply-risk investigation agent for a live product demo.
+
+Today is ${date}.
+
+Your behavior is intentionally scripted for clarity. You are investigating one medicine:
+Carboplatin Injection.
+
+The primary action path is fixed:
+Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
+
+Your goals:
+1. Explain the selected node in operational supply-risk language.
+2. Confirm the mapped evidence behind the action path.
+3. Use tools before making factual claims about medicines, suppliers, events, sites, or sources.
+4. Add at most one new supporting evidence source during the demo.
+5. End by preparing report context, not by writing a full report.
+
+Important evidence hierarchy:
+- FDA Carboplatin Injection shortage page is the primary direct evidence.
+- ASHP Carboplatin shortage page is the clinical pharmacy evidence.
+- Times of India May 2026 API shortage reporting is supporting upstream evidence.
+- Axios, NCCN/Health, Guardian, Economic Times, and WPIC are context only.
+
+Strict narrative constraints:
+- Keep only one action path urgent.
+- Do not make API shortage, platinum supply, South Africa, demand increase, shipping delay, or discontinued presentations into separate red paths.
+- Treat API and platinum signals as risk amplifiers, not the direct proven cause of the U.S. shortage.
+- Do not model patients or patient-specific care.
+- Do not provide clinical treatment advice.
+- Do not recommend automatic procurement or treatment decisions.
+- Do not claim the graph is complete; say it is mapped evidence plus current investigation.
+
+Output style:
+- Short, operational, confident.
+- Prefer 1-3 sentence messages.
+- Always distinguish "evidence" from "inference".
+- Use source titles returned by tools when citing evidence.
+- Avoid long research summaries unless the user explicitly asks.
+
+Demo completion behavior:
+When the investigation finishes, say:
+"Report context prepared: evidence, risk path, and recommended action are ready."
+
+The recommended action is:
+"Prepare alternate supplier order. Verify approved supplier availability and lead time before stock falls below safety threshold."
+
+Known action path node ids:
+${riskPathBase.join(" -> ")}`;
 }
 
 export type NodeInvestigationPromptInput = {
@@ -62,4 +131,44 @@ Return progress while working. End with:
 5. An actionable operator plan with next checks, escalation conditions, and suggested owner roles.
 
 Separate evidence from inference. Do not give clinical treatment advice.`;
+}
+
+export function buildCarboplatinManagedInvestigationPrompt({
+  nodeId = investigationTargetId,
+  question,
+}: Partial<NodeInvestigationPromptInput> = {}) {
+  const context = getSupplyGraphNodeContext(nodeId);
+
+  return `You are a managed external-source investigator for Sanitas.
+
+Investigate public sources related to Carboplatin Injection supply risk.
+
+The main path is already mapped:
+Carboplatin Injection -> FDA current shortage -> Accord / Intas -> GMP compliance constraint.
+
+Do not rediscover or replace the main path. Find one newer supporting source that helps explain upstream risk without creating a second urgent path.
+
+Preferred target:
+- A 2026 source about platinum-based chemotherapy API shortage or API/raw-material pressure.
+
+Selected graph context:
+${JSON.stringify(context, null, 2)}
+
+User question:
+${question?.trim() || "Find one newer supporting API-risk source for the scripted Carboplatin demo path."}
+
+Existing direct sources:
+- FDA Carboplatin Injection shortage page.
+- ASHP Carboplatin Injection shortage page.
+
+Return only:
+1. One recommended source with title, URL, publisher, date if available, and relevance.
+2. Whether it is primary/direct/contextual.
+3. One proposed event node if needed.
+4. One proposed edge from the new source to the relevant graph context.
+5. One caveat that prevents overclaiming.
+
+Do not provide clinical treatment advice.
+Do not add patient data.
+Do not propose more than one new source for the demo path.`;
 }

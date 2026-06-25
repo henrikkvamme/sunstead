@@ -4,6 +4,7 @@ export function getProcessEnv() {
 
 export function readServerEnv(env = getProcessEnv()) {
   return {
+    ANTHROPIC_BASE_URL: readOptionalEnv(env, "ANTHROPIC_BASE_URL"),
     ANTHROPIC_API_BASE_URL: readOptionalEnv(env, "ANTHROPIC_API_BASE_URL"),
     ANTHROPIC_API_KEY: readOptionalEnv(env, "ANTHROPIC_API_KEY"),
     CLAUDE_MANAGED_AGENT_ID: readOptionalEnv(env, "CLAUDE_MANAGED_AGENT_ID"),

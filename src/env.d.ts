@@ -1,4 +1,5 @@
 export type SunsteadServerEnv = {
+  ANTHROPIC_BASE_URL?: string;
   ANTHROPIC_API_BASE_URL?: string;
   ANTHROPIC_API_KEY?: string;
   CLAUDE_MANAGED_AGENT_ID?: string;

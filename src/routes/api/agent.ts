@@ -1,11 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { createSupplyRiskAgentUIResponse } from "#/ai";
+import {
+  carboplatinDemoScenario,
+  createCarboplatinDemoStreamResponse,
+  createSupplyRiskAgentUIResponse,
+} from "#/ai";
 
-const agentRequestSchema = z.object({
+export const agentRequestSchema = z.object({
   messages: z.array(z.unknown()),
   modelId: z.string().min(1).optional(),
+  scenario: z.literal(carboplatinDemoScenario).optional(),
+  selectedNodeId: z.string().min(1).optional(),
 });
 
 export const Route = createFileRoute("/api/agent")({
@@ -25,10 +31,17 @@ export const Route = createFileRoute("/api/agent")({
           );
         }
 
+        if (parsed.data.scenario === carboplatinDemoScenario) {
+          return createCarboplatinDemoStreamResponse({
+            abortSignal: request.signal,
+          });
+        }
+
         return createSupplyRiskAgentUIResponse({
           abortSignal: request.signal,
           messages: parsed.data.messages,
           modelId: parsed.data.modelId,
+          scenario: parsed.data.scenario,
         });
       },
     },

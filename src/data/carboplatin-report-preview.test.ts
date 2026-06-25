@@ -3,13 +3,13 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   carboplatinReportPreview,
   graphNodes,
-  riskPathBase,
   scriptedSourceId,
+  supplierRiskPath,
 } from "./carboplatin-risk-scenario";
 
 describe("carboplatin report preview", () => {
-  it("uses the existing primary Risk Path", () => {
-    expect(carboplatinReportPreview.actionPathNodeIds).toEqual(riskPathBase);
+  it("uses the supplier Risk Path instead of the evidence traversal", () => {
+    expect(carboplatinReportPreview.actionPathNodeIds).toEqual(supplierRiskPath);
   });
 
   it("points report evidence to existing Evidence Source nodes", () => {

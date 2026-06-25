@@ -1,855 +1,554 @@
+import { Video } from "@remotion/media";
+import type React from "react";
 import {
   AbsoluteFill,
   Easing,
   interpolate,
   Sequence,
+  staticFile,
   useCurrentFrame,
 } from "remotion";
 
-const fps = 30;
-const duration = 35 * fps;
-const critical = "#ff4d5f";
-const elevated = "#ffb020";
-const stable = "#30d7a3";
-const ink = "#f7fbff";
-const muted = "rgba(223, 235, 255, 0.72)";
-const panel = "rgba(10, 18, 31, 0.68)";
-const border = "rgba(162, 188, 255, 0.22)";
+export const FPS = 30;
+export const DEMO_DURATION_IN_FRAMES = 540;
+
+const INTRO_FRAMES = 72;
+const RECORDING_FRAMES = 364;
+const OUTRO_START = INTRO_FRAMES + RECORDING_FRAMES;
+const VIDEO_SRC = staticFile("recording/test.mp4");
+
 const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
-const easeInOut = Easing.bezier(0.45, 0, 0.55, 1);
 
-type Risk = "critical" | "elevated" | "stable" | "watch";
-
-type ChainNode = {
-  label: string;
-  risk: Risk;
-  x: number;
-  y: number;
+const clamp = {
+  extrapolateLeft: "clamp" as const,
+  extrapolateRight: "clamp" as const,
 };
 
-const chainNodes: ChainNode[] = [
-  { label: "Carboplatin\nInjection", risk: "critical", x: 8, y: 50 },
-  { label: "Platinum\nAPI", risk: "critical", x: 25, y: 33 },
-  { label: "Accord /\nIntas", risk: "critical", x: 43, y: 43 },
-  { label: "Gujarat\nsite", risk: "critical", x: 60, y: 35 },
-  { label: "GMP\nconstraint", risk: "critical", x: 74, y: 52 },
-  { label: "FDA + ASHP\nshortage", risk: "critical", x: 91, y: 42 },
-  { label: "Hospital\npharmacy", risk: "watch", x: 86, y: 74 },
-];
+type Beat = {
+  start: number;
+  end: number;
+  eyebrow: string;
+  title: string;
+  detail: string;
+  metric: string;
+};
 
-const branchNodes: ChainNode[] = [
-  { label: "Demand\nincrease", risk: "elevated", x: 45, y: 75 },
-  { label: "Shipping\ndelay", risk: "elevated", x: 63, y: 78 },
-  { label: "Discontinued\npresentations", risk: "watch", x: 24, y: 72 },
-  { label: "Platinum raw\nmaterial", risk: "elevated", x: 18, y: 16 },
-];
-
-const sourceCards = [
+const beats: Beat[] = [
   {
-    label: "FDA",
-    title: "Current shortage",
-    detail: "Supplier rows cite GMP compliance, demand, delays, and discontinued presentations.",
-    risk: "critical" as Risk,
+    start: INTRO_FRAMES + 8,
+    end: INTRO_FRAMES + 126,
+    eyebrow: "shortage signal",
+    title: "Carboplatin risk is no longer hidden in a table",
+    detail: "The medicine becomes the entry point into suppliers, evidence, and weak links.",
+    metric: "Risk 87",
   },
   {
-    label: "ASHP",
-    title: "Clinical shortage detail",
-    detail: "Hospital pharmacy context: usual ordering cannot be assumed available.",
-    risk: "critical" as Risk,
+    start: INTRO_FRAMES + 126,
+    end: INTRO_FRAMES + 250,
+    eyebrow: "supply path",
+    title: "The investigation follows the chain, not a static dashboard",
+    detail: "Supplier, geography, quality, demand, and logistics context stay connected.",
+    metric: "Graph view",
   },
   {
-    label: "2026 API signal",
-    title: "New upstream signal",
-    detail: "API pressure strengthens the explanation without overstating direct causality.",
-    risk: "elevated" as Risk,
+    start: INTRO_FRAMES + 250,
+    end: OUTRO_START + 12,
+    eyebrow: "operator action",
+    title: "The risk resolves into an action queue",
+    detail: "Teams see why the recommendation matters before oncology stock falls below safety threshold.",
+    metric: "Alternate supplier",
   },
 ];
 
-const actionCards = [
-  "Verify alternate presentations",
-  "Prioritize high-risk orders",
-  "Monitor supplier evidence",
-  "Escalate before stockout",
-];
-
-function riskColor(risk: Risk) {
-  if (risk === "critical") {
-    return critical;
-  }
-
-  if (risk === "elevated") {
-    return elevated;
-  }
-
-  if (risk === "stable") {
-    return stable;
-  }
-
-  return "#8fb7ff";
-}
-
-function appear(frame: number, start: number, length = 24) {
-  return interpolate(frame, [start, start + length], [0, 1], {
-    easing: easeOut,
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-}
-
-function fadeOut(frame: number, start: number, length = 18) {
-  return interpolate(frame, [start, start + length], [1, 0], {
-    easing: Easing.in(Easing.cubic),
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-}
-
-function sceneOpacity(frame: number, sceneDuration: number) {
-  return appear(frame, 0, 22) * fadeOut(frame, sceneDuration - 18, 18);
-}
-
-function Background({ accent = "#2f83ff" }: { accent?: string }) {
+export const MyComposition: React.FC = () => {
   const frame = useCurrentFrame();
 
   return (
-    <AbsoluteFill
-      style={{
-        backgroundColor: "#050813",
-        backgroundImage: [
-          `radial-gradient(circle at ${18 + frame * 0.018}% ${22 + frame * 0.01}%, ${accent}55 0, transparent 28%)`,
-          `radial-gradient(circle at ${84 - frame * 0.012}% 74%, ${critical}33 0, transparent 26%)`,
-          "linear-gradient(135deg, #081323 0%, #050813 42%, #0a1020 100%)",
-        ].join(", "),
-        overflow: "hidden",
-      }}
-    >
-      <AbsoluteFill
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
-          backgroundSize: "72px 72px",
-          opacity: 0.32,
-          translate: `${interpolate(frame, [0, duration], [-30, 10])}px ${interpolate(frame, [0, duration], [-10, 30])}px`,
-        }}
-      />
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(5,8,19,0.92), transparent 36%, transparent 64%, rgba(5,8,19,0.82))",
-        }}
-      />
+    <AbsoluteFill style={styles.stage}>
+      <AmbientBackdrop />
+
+      <OpeningTitle />
+
+      <Sequence from={INTRO_FRAMES} durationInFrames={RECORDING_FRAMES}>
+        <HeroRecording />
+      </Sequence>
+
+      <Timeline frame={frame} />
+      <BeatCaption frame={frame} />
+
+      <Sequence from={OUTRO_START} durationInFrames={DEMO_DURATION_IN_FRAMES - OUTRO_START}>
+        <ClosingCard />
+      </Sequence>
     </AbsoluteFill>
   );
-}
+};
 
-function SafeFrame({ children }: { children: React.ReactNode }) {
-  return (
-    <AbsoluteFill
-      style={{
-        padding: "100px 120px",
-      }}
-    >
-      {children}
-    </AbsoluteFill>
-  );
-}
-
-function Kicker({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        color: muted,
-        fontSize: 34,
-        fontWeight: 700,
-        letterSpacing: 0,
-        textTransform: "uppercase",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Headline({ children, size = 102 }: { children: React.ReactNode; size?: number }) {
-  return (
-    <div
-      style={{
-        color: ink,
-        fontSize: size,
-        fontWeight: 820,
-        letterSpacing: 0,
-        lineHeight: 0.94,
-        maxWidth: 1180,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Copy({ children, maxWidth = 780 }: { children: React.ReactNode; maxWidth?: number }) {
-  return (
-    <div
-      style={{
-        color: muted,
-        fontSize: 43,
-        fontWeight: 520,
-        lineHeight: 1.2,
-        maxWidth,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function RiskPill({ risk, label }: { label: string; risk: Risk }) {
-  return (
-    <div
-      style={{
-        alignItems: "center",
-        background: `${riskColor(risk)}1f`,
-        border: `1px solid ${riskColor(risk)}99`,
-        borderRadius: 999,
-        color: ink,
-        display: "flex",
-        fontSize: 30,
-        fontWeight: 800,
-        gap: 14,
-        padding: "14px 22px",
-        width: "fit-content",
-      }}
-    >
-      <span
-        style={{
-          background: riskColor(risk),
-          borderRadius: 99,
-          boxShadow: `0 0 30px ${riskColor(risk)}99`,
-          height: 16,
-          width: 16,
-        }}
-      />
-      {label}
-    </div>
-  );
-}
-
-function ChainGraph({ focus = 1 }: { focus?: number }) {
+const AmbientBackdrop: React.FC = () => {
   const frame = useCurrentFrame();
-  const nodeAppearOffset = 10;
-  const allNodes = [...chainNodes, ...branchNodes];
+  const scale = interpolate(frame, [0, DEMO_DURATION_IN_FRAMES], [1.08, 1.16], clamp);
+  const opacity = interpolate(frame, [0, 54, OUTRO_START, DEMO_DURATION_IN_FRAMES], [0.26, 0.54, 0.5, 0.18], clamp);
 
   return (
-    <div
-      style={{
-        border: `1px solid ${border}`,
-        borderRadius: 8,
-        boxShadow: "0 32px 80px rgba(0, 0, 0, 0.42)",
-        flex: 1,
-        minHeight: 610,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
+    <AbsoluteFill style={styles.backdropWrap}>
+      <Video
+        src={VIDEO_SRC}
+        muted
+        objectFit="cover"
+        style={{
+          ...styles.backdropVideo,
+          opacity,
+          transform: `scale(${scale})`,
+        }}
+      />
+      <AbsoluteFill style={styles.redWash} />
+      <AbsoluteFill style={styles.tealWash} />
+      <AbsoluteFill style={styles.vignette} />
+      <AbsoluteFill style={styles.scanlines} />
+    </AbsoluteFill>
+  );
+};
+
+const OpeningTitle: React.FC = () => {
+  const frame = useCurrentFrame();
+  const titleOpacity = interpolate(frame, [8, 28, 64, 82], [0, 1, 1, 0], clamp);
+  const titleY = interpolate(frame, [8, 34], [34, 0], { ...clamp, easing: easeOut });
+  const ruleWidth = interpolate(frame, [24, 54], [0, 420], { ...clamp, easing: easeOut });
+  const previewOpacity = interpolate(frame, [20, 58], [0, 0.24], clamp);
+
+  return (
+    <AbsoluteFill style={styles.intro}>
       <div
         style={{
-          background:
-            "linear-gradient(180deg, rgba(14,26,46,0.82), rgba(5,8,19,0.78))",
-          inset: 0,
-          position: "absolute",
+          ...styles.previewGlass,
+          opacity: previewOpacity,
+          transform: `translateY(${interpolate(frame, [20, 72], [28, 0], clamp)}px) scale(0.88)`,
+        }}
+      >
+        <Video src={VIDEO_SRC} muted objectFit="cover" style={styles.previewVideo} />
+      </div>
+
+      <div
+        style={{
+          ...styles.titleBlock,
+          opacity: titleOpacity,
+          transform: `translateY(${titleY}px)`,
+        }}
+      >
+        <div style={styles.kicker}>SANITAS DEMO</div>
+        <h1 style={styles.h1}>Medicine supply risk chain</h1>
+        <div style={styles.ruleTrack}>
+          <div style={{ ...styles.ruleFill, width: ruleWidth }} />
+        </div>
+        <p style={styles.lede}>
+          From shortage signal to supplier path to recommended action.
+        </p>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+const HeroRecording: React.FC = () => {
+  const frame = useCurrentFrame();
+  const entrance = interpolate(frame, [0, 48], [0, 1], { ...clamp, easing: easeOut });
+  const exit = interpolate(frame, [RECORDING_FRAMES - 40, RECORDING_FRAMES], [1, 0.82], clamp);
+  const opacity = entrance * exit;
+  const scale = interpolate(frame, [0, RECORDING_FRAMES], [0.985, 1.02], clamp);
+  const y = interpolate(frame, [0, 54], [30, 0], { ...clamp, easing: easeOut });
+
+  return (
+    <AbsoluteFill style={{ ...styles.heroLayer, opacity }}>
+      <div
+        style={{
+          ...styles.deviceGlow,
+          opacity: 0.55 * opacity,
+          scale,
+          translate: `0px ${y}px`,
         }}
       />
-      <svg
-        height="100%"
+      <div
         style={{
-          inset: 0,
-          position: "absolute",
+          ...styles.monitorFrame,
+          scale,
+          translate: `0px ${y}px`,
         }}
-        viewBox="0 0 100 100"
-        width="100%"
       >
-        {[...chainNodes.slice(0, -1).map((node, index) => [node, chainNodes[index + 1]] as const),
-          [chainNodes[1], branchNodes[3]] as const,
-          [chainNodes[2], branchNodes[0]] as const,
-          [chainNodes[3], branchNodes[1]] as const,
-          [chainNodes[1], branchNodes[2]] as const,
-          [chainNodes[5], chainNodes[6]] as const,
-        ].map(([from, to], index) => {
-          const progress = appear(frame, 16 + index * 10, 24) * focus;
-          const color = riskColor(from.risk === "watch" ? to.risk : from.risk);
+        <Video src={VIDEO_SRC} volume={1} objectFit="contain" style={styles.mainVideo} />
+      </div>
+      <div
+        style={{
+          ...styles.deviceBase,
+          opacity,
+          scale,
+          translate: `0px ${y}px`,
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
 
-          return (
-            <g key={`${from.label}-${to.label}`}>
-              <line
-                stroke="rgba(175, 205, 255, 0.16)"
-                strokeWidth="0.48"
-                x1={from.x}
-                x2={to.x}
-                y1={from.y}
-                y2={to.y}
-              />
-              <line
-                pathLength={1}
-                stroke={color}
-                strokeDasharray={`${progress} ${1 - progress}`}
-                strokeLinecap="round"
-                strokeWidth="0.62"
-                x1={from.x}
-                x2={to.x}
-                y1={from.y}
-                y2={to.y}
-              />
-            </g>
-          );
-        })}
-      </svg>
-      {allNodes.map((node, index) => {
-        const show = appear(frame, nodeAppearOffset + index * 6, 18);
-        const pulse = 0.5 + Math.sin((frame + index * 9) / 12) * 0.5;
+const BeatCaption: React.FC<{ frame: number }> = ({ frame }) => {
+  const beat = beats.find((item) => frame >= item.start && frame < item.end);
 
-        return (
-          <div
-            key={node.label}
-            style={{
-              left: `${node.x}%`,
-              opacity: show,
-              position: "absolute",
-              top: `${node.y}%`,
-              translate: "-50% -50%",
-              scale: interpolate(show, [0, 1], [0.82, 1]),
-            }}
-          >
-            <div
-              style={{
-                alignItems: "center",
-                background: `linear-gradient(180deg, ${riskColor(node.risk)}2d, rgba(5, 8, 19, 0.88))`,
-                border: `1px solid ${riskColor(node.risk)}99`,
-                borderRadius: 8,
-                boxShadow: `0 0 ${24 + pulse * 24}px ${riskColor(node.risk)}55`,
-                color: ink,
-                display: "flex",
-                fontSize: 23,
-                fontWeight: 820,
-                justifyContent: "center",
-                lineHeight: 1.02,
-                minHeight: 82,
-                padding: "12px 14px",
-                textAlign: "center",
-                whiteSpace: "pre-line",
-                width: 152,
-              }}
-            >
-              {node.label}
-            </div>
-          </div>
-        );
-      })}
+  if (!beat) {
+    return null;
+  }
+
+  const inFrame = frame - beat.start;
+  const outFrame = beat.end - frame;
+  const opacity = Math.min(
+    interpolate(inFrame, [0, 18], [0, 1], { ...clamp, easing: easeOut }),
+    interpolate(outFrame, [0, 18], [0, 1], clamp),
+  );
+  const x = interpolate(inFrame, [0, 28], [-34, 0], { ...clamp, easing: easeOut });
+
+  return (
+    <div
+      style={{
+        ...styles.caption,
+        opacity,
+        transform: `translateX(${x}px)`,
+      }}
+    >
+      <div style={styles.captionMeta}>
+        <span style={styles.captionEyebrow}>{beat.eyebrow}</span>
+        <span style={styles.captionMetric}>{beat.metric}</span>
+      </div>
+      <div style={styles.captionTitle}>{beat.title}</div>
+      <div style={styles.captionDetail}>{beat.detail}</div>
     </div>
   );
-}
+};
 
-function IntroScene({ sceneDuration }: { sceneDuration: number }) {
-  const frame = useCurrentFrame();
-
-  return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, sceneDuration) }}>
-      <SafeFrame>
-        <div
-          style={{
-            alignItems: "center",
-            display: "flex",
-            flexDirection: "column",
-            gap: 34,
-            height: "100%",
-            justifyContent: "center",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              opacity: appear(frame, 0, 22),
-              translate: `0 ${interpolate(appear(frame, 0, 22), [0, 1], [28, 0])}px`,
-            }}
-          >
-            <Kicker>Sanitas supply-risk graph</Kicker>
-          </div>
-          <div
-            style={{
-              opacity: appear(frame, 14, 28),
-              scale: interpolate(appear(frame, 14, 28), [0, 1], [0.94, 1]),
-            }}
-          >
-            <Headline size={118}>Why carboplatin can disappear before the shelf looks empty</Headline>
-          </div>
-          <div style={{ opacity: appear(frame, 52, 24) }}>
-            <Copy maxWidth={1040}>
-              One medicine depends on active ingredients, supplier quality, manufacturing sites,
-              logistics, and evidence that changes faster than procurement cycles.
-            </Copy>
-          </div>
-          <div style={{ opacity: appear(frame, 86, 18) }}>
-            <RiskPill label="Risk score 87 · critical" risk="critical" />
-          </div>
-        </div>
-      </SafeFrame>
-    </AbsoluteFill>
-  );
-}
-
-function ChainScene({ sceneDuration }: { sceneDuration: number }) {
-  const frame = useCurrentFrame();
+const Timeline: React.FC<{ frame: number }> = ({ frame }) => {
+  const progress = interpolate(frame, [INTRO_FRAMES, OUTRO_START], [0, 1], clamp);
+  const visible = interpolate(frame, [INTRO_FRAMES - 18, INTRO_FRAMES + 8, OUTRO_START, OUTRO_START + 20], [0, 1, 1, 0], clamp);
 
   return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, sceneDuration) }}>
-      <SafeFrame>
-        <div
-          style={{
-            alignItems: "center",
-            display: "flex",
-            gap: 70,
-            height: "100%",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flex: "0 0 610px",
-              flexDirection: "column",
-              gap: 34,
-            }}
-          >
-            <div style={{ opacity: appear(frame, 2, 20) }}>
-              <Kicker>The strongest current path</Kicker>
-            </div>
-            <div style={{ opacity: appear(frame, 16, 24) }}>
-              <Headline size={78}>Risk travels through the chain, not just the label.</Headline>
-            </div>
-            <div style={{ opacity: appear(frame, 50, 22) }}>
-              <Copy maxWidth={610}>
-                Carboplatin links to a platinum API, a named supplier path, a manufacturing site,
-                and primary shortage evidence.
-              </Copy>
-            </div>
-          </div>
-          <div
-            style={{
-              opacity: appear(frame, 24, 24),
-              translate: `${interpolate(appear(frame, 24, 24), [0, 1], [34, 0])}px 0`,
-              width: 960,
-            }}
-          >
-            <ChainGraph />
-          </div>
-        </div>
-      </SafeFrame>
-    </AbsoluteFill>
+    <div style={{ ...styles.timeline, opacity: visible }}>
+      <div style={styles.timelineLabel}>LIVE DEMO CAPTURE</div>
+      <div style={styles.timelineTrack}>
+        <div style={{ ...styles.timelineFill, width: `${progress * 100}%` }} />
+        {beats.map((beat) => {
+          const left = interpolate(beat.start, [INTRO_FRAMES, OUTRO_START], [0, 100], clamp);
+          const active = frame >= beat.start && frame < beat.end;
+          return (
+            <div
+              key={beat.eyebrow}
+              style={{
+                ...styles.timelineDot,
+                left: `${left}%`,
+                borderColor: active ? "#ff5a0a" : "#282828",
+                background: active ? "#ff5a0a" : "#151515",
+                boxShadow: active ? "0 0 24px rgba(255, 90, 10, 0.58)" : "none",
+              }}
+            />
+          );
+        })}
+      </div>
+      <div style={styles.timelineTime}>
+        {String(Math.max(0, Math.floor((frame - INTRO_FRAMES) / FPS))).padStart(2, "0")}s
+      </div>
+    </div>
   );
-}
+};
 
-function FailureScene({ sceneDuration }: { sceneDuration: number }) {
+const ClosingCard: React.FC = () => {
   const frame = useCurrentFrame();
-  const risks = [
-    {
-      title: "GMP compliance",
-      body: "Quality constraints can remove supplier capacity even when demand is unchanged.",
-      risk: "critical" as Risk,
-    },
-    {
-      title: "Demand increase",
-      body: "Backup suppliers may already be absorbing redirected orders.",
-      risk: "elevated" as Risk,
-    },
-    {
-      title: "Shipping delay",
-      body: "Nominal supply becomes uncertain delivery timing for buyers.",
-      risk: "elevated" as Risk,
-    },
+  const opacity = interpolate(frame, [0, 28], [0, 1], { ...clamp, easing: easeOut });
+  const y = interpolate(frame, [0, 36], [26, 0], { ...clamp, easing: easeOut });
+  const items = [
+    "Shortage evidence stays connected",
+    "Supplier paths become explainable",
+    "Clinical teams get a recommended action",
   ];
 
   return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, sceneDuration) }}>
-      <SafeFrame>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 52,
-            height: "100%",
-            justifyContent: "center",
-          }}
-        >
-          <div style={{ maxWidth: 1260 }}>
-            <div style={{ opacity: appear(frame, 0, 18) }}>
-              <Kicker>Where the chain breaks</Kicker>
-            </div>
-            <div style={{ marginTop: 24, opacity: appear(frame, 12, 24) }}>
-              <Headline size={86}>The supplier list is not the same as usable supply.</Headline>
-            </div>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gap: 28,
-              gridTemplateColumns: "repeat(3, 1fr)",
-            }}
-          >
-            {risks.map((risk, index) => {
-              const show = appear(frame, 42 + index * 16, 22);
-
-              return (
-                <div
-                  key={risk.title}
-                  style={{
-                    background: panel,
-                    border: `1px solid ${riskColor(risk.risk)}77`,
-                    borderRadius: 8,
-                    boxShadow: `0 26px 70px ${riskColor(risk.risk)}20`,
-                    minHeight: 330,
-                    opacity: show,
-                    padding: 38,
-                    scale: interpolate(show, [0, 1], [0.94, 1]),
-                    translate: `0 ${interpolate(show, [0, 1], [28, 0])}px`,
-                  }}
-                >
-                  <RiskPill label={risk.risk} risk={risk.risk} />
-                  <div
-                    style={{
-                      color: ink,
-                      fontSize: 52,
-                      fontWeight: 820,
-                      lineHeight: 1,
-                      marginTop: 30,
-                    }}
-                  >
-                    {risk.title}
-                  </div>
-                  <div
-                    style={{
-                      color: muted,
-                      fontSize: 33,
-                      fontWeight: 520,
-                      lineHeight: 1.2,
-                      marginTop: 22,
-                    }}
-                  >
-                    {risk.body}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+    <AbsoluteFill style={{ ...styles.closing, opacity }}>
+      <div style={{ ...styles.closingPanel, transform: `translateY(${y}px)` }}>
+        <div style={styles.kicker}>FROM SIGNAL TO DECISION</div>
+        <h2 style={styles.h2}>A cinematic view of supply risk before it becomes care disruption.</h2>
+        <div style={styles.closingGrid}>
+          {items.map((item, index) => {
+            const itemOpacity = interpolate(frame, [24 + index * 12, 46 + index * 12], [0, 1], clamp);
+            return (
+              <div key={item} style={{ ...styles.closingItem, opacity: itemOpacity }}>
+                <span style={styles.closingIndex}>0{index + 1}</span>
+                <span>{item}</span>
+              </div>
+            );
+          })}
         </div>
-      </SafeFrame>
+      </div>
     </AbsoluteFill>
   );
-}
+};
 
-function EvidenceScene({ sceneDuration }: { sceneDuration: number }) {
-  const frame = useCurrentFrame();
-
-  return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, sceneDuration) }}>
-      <SafeFrame>
-        <div
-          style={{
-            alignItems: "center",
-            display: "grid",
-            gap: 72,
-            gridTemplateColumns: "0.82fr 1.18fr",
-            height: "100%",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 32,
-            }}
-          >
-            <div style={{ opacity: appear(frame, 0, 18) }}>
-              <Kicker>Evidence, not guesses</Kicker>
-            </div>
-            <div style={{ opacity: appear(frame, 14, 22) }}>
-              <Headline size={80}>Sanitas separates proof from risk signals.</Headline>
-            </div>
-            <div style={{ opacity: appear(frame, 46, 20) }}>
-              <Copy maxWidth={690}>
-                Primary shortage records anchor the graph. News and market signals expand the
-                investigation without pretending every link is proven.
-              </Copy>
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 22,
-            }}
-          >
-            {sourceCards.map((source, index) => {
-              const show = appear(frame, 22 + index * 18, 20);
-
-              return (
-                <div
-                  key={source.label}
-                  style={{
-                    alignItems: "center",
-                    background: `linear-gradient(90deg, ${riskColor(source.risk)}22, rgba(10, 18, 31, 0.78))`,
-                    border: `1px solid ${riskColor(source.risk)}66`,
-                    borderRadius: 8,
-                    display: "grid",
-                    gap: 28,
-                    gridTemplateColumns: "215px 1fr",
-                    minHeight: 172,
-                    opacity: show,
-                    padding: "26px 30px",
-                    translate: `${interpolate(show, [0, 1], [36, 0])}px 0`,
-                  }}
-                >
-                  <div
-                    style={{
-                      alignItems: "center",
-                      background: `${riskColor(source.risk)}22`,
-                      border: `1px solid ${riskColor(source.risk)}88`,
-                      borderRadius: 8,
-                      color: ink,
-                      display: "flex",
-                      fontSize: 34,
-                      fontWeight: 900,
-                      height: 124,
-                      justifyContent: "center",
-                      lineHeight: 1.08,
-                      textAlign: "center",
-                    }}
-                  >
-                    {source.label}
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        color: ink,
-                        fontSize: 42,
-                        fontWeight: 820,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {source.title}
-                    </div>
-                    <div
-                      style={{
-                        color: muted,
-                        fontSize: 29,
-                        fontWeight: 520,
-                        lineHeight: 1.22,
-                        marginTop: 14,
-                      }}
-                    >
-                      {source.detail}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </SafeFrame>
-    </AbsoluteFill>
-  );
-}
-
-function AgentScene({ sceneDuration }: { sceneDuration: number }) {
-  const frame = useCurrentFrame();
-  const scan = interpolate(frame, [24, 128], [0, 1], {
-    easing: easeInOut,
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, sceneDuration) }}>
-      <SafeFrame>
-        <div
-          style={{
-            alignItems: "center",
-            display: "grid",
-            gap: 70,
-            gridTemplateColumns: "1fr 1fr",
-            height: "100%",
-          }}
-        >
-          <div
-            style={{
-              border: `1px solid ${border}`,
-              borderRadius: 8,
-              minHeight: 690,
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <ChainGraph focus={0.8} />
-            <div
-              style={{
-                background: `linear-gradient(90deg, transparent, ${stable}66, transparent)`,
-                height: "100%",
-                left: `${interpolate(scan, [0, 1], [-15, 100])}%`,
-                opacity: 0.8,
-                position: "absolute",
-                top: 0,
-                width: 90,
-              }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 32,
-            }}
-          >
-            <div style={{ opacity: appear(frame, 2, 18) }}>
-              <Kicker>Agent-assisted investigation</Kicker>
-            </div>
-            <div style={{ opacity: appear(frame, 14, 24) }}>
-              <Headline size={78}>The agent turns the graph into an action queue.</Headline>
-            </div>
-            <div style={{ opacity: appear(frame, 46, 22) }}>
-              <Copy maxWidth={760}>
-                It surfaces the highest-risk path first, cites the supporting source, and flags
-                what is evidence versus inference.
-              </Copy>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 18,
-                opacity: appear(frame, 82, 20),
-              }}
-            >
-              <RiskPill label="Evidence: FDA + ASHP" risk="critical" />
-              <RiskPill label="Inference: upstream raw material" risk="elevated" />
-            </div>
-          </div>
-        </div>
-      </SafeFrame>
-    </AbsoluteFill>
-  );
-}
-
-function ActionScene({ sceneDuration }: { sceneDuration: number }) {
-  const frame = useCurrentFrame();
-
-  return (
-    <AbsoluteFill style={{ opacity: sceneOpacity(frame, sceneDuration) }}>
-      <SafeFrame>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 46,
-            height: "100%",
-            justifyContent: "center",
-          }}
-        >
-          <div style={{ opacity: appear(frame, 0, 18) }}>
-            <Kicker>Before the shortage reaches the patient</Kicker>
-          </div>
-          <div style={{ opacity: appear(frame, 14, 24) }}>
-            <Headline size={90}>See the weak link early. Move before care is delayed.</Headline>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gap: 22,
-              gridTemplateColumns: "repeat(4, 1fr)",
-              marginTop: 22,
-            }}
-          >
-            {actionCards.map((action, index) => {
-              const show = appear(frame, 54 + index * 12, 20);
-
-              return (
-                <div
-                  key={action}
-                  style={{
-                    alignItems: "center",
-                    background: panel,
-                    border: `1px solid ${index === 3 ? critical : border}`,
-                    borderRadius: 8,
-                    color: ink,
-                    display: "flex",
-                    fontSize: 38,
-                    fontWeight: 820,
-                    justifyContent: "center",
-                    lineHeight: 1.04,
-                    minHeight: 190,
-                    opacity: show,
-                    padding: 30,
-                    scale: interpolate(show, [0, 1], [0.92, 1]),
-                    textAlign: "center",
-                  }}
-                >
-                  {action}
-                </div>
-              );
-            })}
-          </div>
-          <div
-            style={{
-              alignItems: "center",
-              display: "flex",
-              gap: 26,
-              marginTop: 18,
-              opacity: appear(frame, 112, 24),
-            }}
-          >
-            <div
-              style={{
-                background: critical,
-                borderRadius: 99,
-                boxShadow: `0 0 42px ${critical}`,
-                height: 22,
-                width: 22,
-              }}
-            />
-            <div
-              style={{
-                color: muted,
-                fontSize: 42,
-                fontWeight: 640,
-              }}
-            >
-              Sanitas makes medicine supply risk visible while there is still time to act.
-            </div>
-          </div>
-        </div>
-      </SafeFrame>
-    </AbsoluteFill>
-  );
-}
-
-export const MyComposition = () => {
-  return (
-    <AbsoluteFill>
-      <Background accent="#327bff" />
-      <Sequence durationInFrames={150} premountFor={fps}>
-        <IntroScene sceneDuration={150} />
-      </Sequence>
-      <Sequence from={132} durationInFrames={210} premountFor={fps}>
-        <ChainScene sceneDuration={210} />
-      </Sequence>
-      <Sequence from={324} durationInFrames={180} premountFor={fps}>
-        <FailureScene sceneDuration={180} />
-      </Sequence>
-      <Sequence from={486} durationInFrames={180} premountFor={fps}>
-        <EvidenceScene sceneDuration={180} />
-      </Sequence>
-      <Sequence from={648} durationInFrames={210} premountFor={fps}>
-        <AgentScene sceneDuration={210} />
-      </Sequence>
-      <Sequence from={840} durationInFrames={210} premountFor={fps}>
-        <ActionScene sceneDuration={210} />
-      </Sequence>
-    </AbsoluteFill>
-  );
+const styles: Record<string, React.CSSProperties> = {
+  stage: {
+    background: "#050505",
+    color: "#f5f5f5",
+    fontFamily:
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    overflow: "hidden",
+  },
+  backdropWrap: {
+    overflow: "hidden",
+    background:
+      "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px), #050505",
+    backgroundSize: "64px 64px, 64px 64px, auto",
+  },
+  backdropVideo: {
+    width: "100%",
+    height: "100%",
+    filter: "blur(18px) saturate(0.88) contrast(1.05)",
+  },
+  redWash: {
+    background:
+      "radial-gradient(circle at 17% 44%, rgba(255, 90, 10, 0.18) 0%, rgba(255, 90, 10, 0.05) 32%, transparent 62%)",
+    mixBlendMode: "screen",
+  },
+  tealWash: {
+    background:
+      "linear-gradient(90deg, rgba(10, 10, 10, 0.12), rgba(21, 21, 21, 0.44), rgba(255, 90, 10, 0.06))",
+    mixBlendMode: "screen",
+  },
+  vignette: {
+    background:
+      "radial-gradient(circle at 50% 50%, transparent 0%, rgba(5, 5, 5, 0.1) 48%, rgba(5, 5, 5, 0.72) 100%)",
+  },
+  scanlines: {
+    background:
+      "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)",
+    backgroundSize: "100% 42px, 52px 100%",
+    opacity: 0.22,
+  },
+  intro: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  previewGlass: {
+    position: "absolute",
+    width: 1280,
+    height: 804,
+    border: "1px solid #282828",
+    borderRadius: 12,
+    overflow: "hidden",
+    boxShadow: "0 34px 140px rgba(0, 0, 0, 0.78)",
+  },
+  previewVideo: {
+    width: "100%",
+    height: "100%",
+    filter: "blur(8px) saturate(1.05)",
+  },
+  titleBlock: {
+    position: "absolute",
+    left: 170,
+    bottom: 210,
+    width: 980,
+  },
+  kicker: {
+    color: "#ff5a0a",
+    fontSize: 23,
+    fontWeight: 750,
+    lineHeight: 1.1,
+    textTransform: "uppercase",
+  },
+  h1: {
+    margin: "20px 0 24px",
+    fontSize: 92,
+    lineHeight: 0.97,
+    fontWeight: 820,
+    maxWidth: 1020,
+  },
+  ruleTrack: {
+    width: 420,
+    height: 3,
+    background: "rgba(214, 255, 247, 0.14)",
+    marginBottom: 24,
+  },
+  ruleFill: {
+    height: "100%",
+    background: "#ff5a0a",
+  },
+  lede: {
+    margin: 0,
+    color: "#a7a7a7",
+    fontSize: 32,
+    lineHeight: 1.28,
+    maxWidth: 820,
+  },
+  heroLayer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deviceGlow: {
+    position: "absolute",
+    width: 1640,
+    height: 1030,
+    borderRadius: 12,
+    background:
+      "linear-gradient(135deg, rgba(255, 90, 10, 0.32), rgba(21, 21, 21, 0.64), rgba(5,5,5,0))",
+    filter: "blur(24px)",
+  },
+  monitorFrame: {
+    position: "absolute",
+    width: 1592,
+    height: 1000,
+    borderRadius: 12,
+    overflow: "hidden",
+    background: "#0a0a0a",
+    border: "1px solid #282828",
+    boxShadow:
+      "0 0 0 1px rgba(255,255,255,0.04) inset, 0 44px 150px rgba(0,0,0,0.72), 0 0 70px rgba(255,90,10,0.12)",
+  },
+  mainVideo: {
+    width: "100%",
+    height: "100%",
+    background: "#0a0a0a",
+  },
+  deviceBase: {
+    position: "absolute",
+    left: 195,
+    bottom: 16,
+    width: 1530,
+    height: 48,
+    borderRadius: "0 0 16px 16px",
+    background: "linear-gradient(180deg, #282828, #0a0a0a)",
+    border: "1px solid #282828",
+    pointerEvents: "none",
+  },
+  caption: {
+    position: "absolute",
+    left: 72,
+    bottom: 72,
+    width: 560,
+    padding: "22px 26px",
+    borderRadius: 10,
+    background: "rgba(10, 10, 10, 0.9)",
+    border: "1px solid #282828",
+    boxShadow: "0 24px 100px rgba(0, 0, 0, 0.62)",
+    backdropFilter: "blur(18px)",
+  },
+  captionMeta: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 24,
+    marginBottom: 12,
+  },
+  captionEyebrow: {
+    color: "#ff5a0a",
+    fontSize: 15,
+    lineHeight: 1,
+    fontWeight: 800,
+    textTransform: "uppercase",
+  },
+  captionMetric: {
+    color: "#ff5a0a",
+    fontSize: 16,
+    lineHeight: 1,
+    fontWeight: 850,
+  },
+  captionTitle: {
+    color: "#f5f5f5",
+    fontSize: 27,
+    lineHeight: 1.12,
+    fontWeight: 820,
+    marginBottom: 10,
+  },
+  captionDetail: {
+    color: "#a7a7a7",
+    fontSize: 18,
+    lineHeight: 1.36,
+  },
+  timeline: {
+    position: "absolute",
+    right: 72,
+    bottom: 80,
+    width: 500,
+    display: "grid",
+    gridTemplateColumns: "auto 1fr auto",
+    alignItems: "center",
+    gap: 20,
+    padding: "18px 22px",
+    borderRadius: 999,
+    background: "rgba(10, 10, 10, 0.9)",
+    border: "1px solid #282828",
+    boxShadow: "0 18px 70px rgba(0, 0, 0, 0.5)",
+    backdropFilter: "blur(16px)",
+  },
+  timelineLabel: {
+    color: "#9d9d9d",
+    fontSize: 16,
+    fontWeight: 800,
+    textTransform: "uppercase",
+  },
+  timelineTrack: {
+    position: "relative",
+    height: 4,
+    background: "#282828",
+    borderRadius: 999,
+  },
+  timelineFill: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    height: 4,
+    borderRadius: 999,
+    background: "#ff5a0a",
+  },
+  timelineDot: {
+    position: "absolute",
+    top: -7,
+    width: 18,
+    height: 18,
+    marginLeft: -9,
+    borderRadius: 999,
+    border: "2px solid #282828",
+  },
+  timelineTime: {
+    color: "#f5f5f5",
+    fontSize: 18,
+    fontWeight: 850,
+    fontVariantNumeric: "tabular-nums",
+  },
+  closing: {
+    alignItems: "center",
+    justifyContent: "center",
+    background:
+      "linear-gradient(90deg, rgba(5,5,5,0.94), rgba(10,10,10,0.82)), radial-gradient(circle at 32% 42%, rgba(255,90,10,0.16), transparent 42%)",
+  },
+  closingPanel: {
+    width: 1180,
+  },
+  h2: {
+    margin: "22px 0 38px",
+    fontSize: 66,
+    lineHeight: 1.02,
+    fontWeight: 830,
+    maxWidth: 1120,
+  },
+  closingGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 18,
+  },
+  closingItem: {
+    minHeight: 142,
+    borderRadius: 16,
+    padding: "26px 28px",
+    background: "#151515",
+    border: "1px solid #282828",
+    color: "#f3f3f3",
+    fontSize: 25,
+    lineHeight: 1.26,
+    fontWeight: 720,
+  },
+  closingIndex: {
+    display: "block",
+    color: "#ff5a0a",
+    fontSize: 19,
+    fontWeight: 850,
+    marginBottom: 16,
+  },
 };

@@ -14,10 +14,12 @@ import {
   Loader2,
   MapPin,
   Pill,
+  Radar,
   Route as RouteIcon,
   Search,
   ShieldAlert,
   Sparkles,
+  Workflow,
   Waves,
 } from "lucide-react";
 import {
@@ -31,6 +33,11 @@ import {
 } from "react";
 
 import {
+  carboplatinDemoReplaySteps,
+  carboplatinDemoScenario,
+  getCarboplatinDemoReplayState,
+} from "#/ai/carboplatin-demo";
+import {
   carboplatinReportPreview,
   graphEdges,
   graphNodes,
@@ -40,6 +47,7 @@ import {
   scriptedSourceId,
   selectedMedicineId,
   selectedMedicineSlug,
+  supplierRiskPath,
 } from "#/data/carboplatin-risk-scenario";
 import type { GraphEdge, GraphNode, NodeDetails } from "#/data/carboplatin-risk-scenario";
 import { cn } from "#/lib/cn";
@@ -59,6 +67,165 @@ type CommandPaletteItem = {
   title: string;
   token: string;
 };
+
+type InvestigationStepStatus = "complete" | "pending" | "running";
+
+type InvestigationStreamTool = {
+  id: string;
+  label: string;
+  outputSummary?: string;
+  status: InvestigationStepStatus;
+  stepId: string;
+  toolName: string;
+};
+
+type InvestigationReasoningSummary = {
+  afterToolId?: string;
+  beforeToolId?: string;
+  id: string;
+  status: "complete" | "streaming";
+  text: string;
+};
+
+type InvestigationStreamStep = {
+  id: string;
+  label: string;
+  reasoning: InvestigationReasoningSummary[];
+  status: InvestigationStepStatus;
+  summary?: string;
+  toolCount: number;
+  tools: InvestigationStreamTool[];
+};
+
+type AgentStreamPart =
+  | {
+      data: {
+        id: string;
+        label: string;
+        status: InvestigationStepStatus;
+        summary?: string;
+        toolCount: number;
+      };
+      id?: string;
+      type: "data-agent-step";
+    }
+  | {
+      data: {
+        id: string;
+        label: string;
+        outputSummary?: string;
+        status: InvestigationStepStatus;
+        stepId: string;
+        toolName: string;
+      };
+      id?: string;
+      type: "data-agent-tool";
+    }
+  | {
+      data: {
+        afterToolId?: string;
+        beforeToolId?: string;
+        id: string;
+        status: "complete" | "streaming";
+        stepId: string;
+        text: string;
+      };
+      id?: string;
+      type: "data-agent-reasoning";
+    }
+  | {
+      data: {
+        addedEvidenceNodeIds: string[];
+        edgesToHighlight: string[];
+        nodesToHighlight: string[];
+        source: unknown;
+      };
+      id?: string;
+      type: "data-graph-update";
+    }
+  | {
+      data: {
+        reportContextReady: true;
+        sentence: string;
+      };
+      id?: string;
+      type: "data-report-ready";
+    };
+
+function createInitialInvestigationSteps(): InvestigationStreamStep[] {
+  return carboplatinDemoReplaySteps.map((step) => ({
+    id: step.id,
+    label: step.label,
+    reasoning: [],
+    status: "pending",
+    toolCount: step.tools.length,
+    tools: step.tools.map((tool) => ({
+      id: tool.id,
+      label: tool.label,
+      outputSummary: undefined,
+      status: "pending",
+      stepId: step.id,
+      toolName: tool.toolName,
+    })),
+  }));
+}
+
+function isAgentStreamPart(value: unknown): value is AgentStreamPart {
+  if (typeof value !== "object" || value === null || !("type" in value)) {
+    return false;
+  }
+
+  const type = (value as { type: unknown }).type;
+
+  return (
+    type === "data-agent-step" ||
+    type === "data-agent-tool" ||
+    type === "data-agent-reasoning" ||
+    type === "data-graph-update" ||
+    type === "data-report-ready"
+  );
+}
+
+async function readAgentEventStream(
+  body: ReadableStream<Uint8Array>,
+  onPart: (part: AgentStreamPart) => void,
+) {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+
+    let eventBoundary = buffer.indexOf("\n\n");
+    while (eventBoundary >= 0) {
+      const eventText = buffer.slice(0, eventBoundary);
+      buffer = buffer.slice(eventBoundary + 2);
+      eventBoundary = buffer.indexOf("\n\n");
+
+      for (const line of eventText.split("\n")) {
+        if (!line.startsWith("data:")) {
+          continue;
+        }
+
+        const rawData = line.slice(5).trim();
+        if (!rawData || rawData === "[DONE]") {
+          continue;
+        }
+
+        const parsed: unknown = JSON.parse(rawData);
+        if (isAgentStreamPart(parsed)) {
+          onPart(parsed);
+        }
+      }
+    }
+
+    if (done) {
+      break;
+    }
+  }
+}
 
 const kindIcons: Record<GraphNode["kind"], ReactNode> = {
   component: <FlaskConical aria-hidden size={15} />,
@@ -141,6 +308,16 @@ function detailsForNode(node: GraphNode): NodeDetails[string] {
       node.riskReason ??
       `${node.label} contributes to the mapped supply-risk context for Carboplatin Injection.`,
   };
+}
+
+function findSourceNodeForEvidence(source: NodeDetails[string]["sources"][number]) {
+  return graphNodes.find((node) => {
+    if (node.kind !== "source") {
+      return false;
+    }
+
+    return nodeDetails[node.id]?.sources.some((candidate) => candidate.url === source.url);
+  });
 }
 
 type LayoutPoint = { x: number; y: number };
@@ -350,6 +527,8 @@ function writeUrlGraphMode(
 export function Dashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const [selectedNodeId, setSelectedNodeId] = useState(selectedMedicineId);
+  const [panelNodeId, setPanelNodeId] = useState(selectedMedicineId);
+  const [expandedNodeId, setExpandedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
@@ -358,25 +537,37 @@ export function Dashboard() {
   );
   const [addedEvidence, setAddedEvidence] = useState(false);
   const [pulsePath, setPulsePath] = useState(false);
+  const [insertingNodeId, setInsertingNodeId] = useState<string | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [streamSteps, setStreamSteps] = useState<InvestigationStreamStep[]>(
+    createInitialInvestigationSteps,
+  );
+  const streamAbortRef = useRef<AbortController | null>(null);
   const commandInputRef = useRef<HTMLInputElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const graphMode: GraphMode = viewMode === "overview" ? "overview" : "focused";
 
   const activePath = useMemo(() => new Set(riskPathBase), []);
   const selectedNode = graphNodes.find((node) => node.id === selectedNodeId) ?? graphNodes[0];
-  const selectedDetails = detailsForNode(selectedNode);
+  const panelNode = graphNodes.find((node) => node.id === panelNodeId) ?? selectedNode;
+  const selectedDetails = detailsForNode(panelNode);
   const evidenceCount = addedEvidence ? 5 : 4;
   const confidence = addedEvidence ? "92%" : "88%";
   const sidebarOpen =
     viewMode === "node-detail" || viewMode === "investigating" || viewMode === "report-ready";
 
   const openCommandPalette = () => {
+    setNotificationsOpen(false);
     setCommandPaletteOpen(true);
   };
 
   const showOverview = () => {
+    setNotificationsOpen(false);
     setViewMode("overview");
     setSelectedNodeId(selectedMedicineId);
+    setPanelNodeId(selectedMedicineId);
+    setExpandedNodeId(null);
     writeUrlGraphMode("overview");
   };
 
@@ -386,24 +577,12 @@ export function Dashboard() {
     window.requestAnimationFrame(() => searchButtonRef.current?.focus());
   };
 
-  useEffect(() => {
-    if (investigationState !== "running") {
-      return;
-    }
-
-    const finish = window.setTimeout(() => {
-      setAddedEvidence(true);
-      setInvestigationState("complete");
-      setViewMode("report-ready");
-      setPulsePath(true);
-    }, 2100);
-    const clearPulse = window.setTimeout(() => setPulsePath(false), 3400);
-
-    return () => {
-      window.clearTimeout(finish);
-      window.clearTimeout(clearPulse);
-    };
-  }, [investigationState]);
+  useEffect(
+    () => () => {
+      streamAbortRef.current?.abort();
+    },
+    [],
+  );
 
   useEffect(() => {
     const syncFromUrl = () => {
@@ -411,6 +590,8 @@ export function Dashboard() {
 
       setViewMode(nextMode === "overview" ? "overview" : "medicine-focus");
       setSelectedNodeId(selectedMedicineId);
+      setPanelNodeId(selectedMedicineId);
+      setExpandedNodeId(null);
     };
 
     syncFromUrl();
@@ -444,6 +625,36 @@ export function Dashboard() {
   }, [commandPaletteOpen]);
 
   useEffect(() => {
+    if (!notificationsOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        notificationsRef.current &&
+        event.target instanceof Node &&
+        !notificationsRef.current.contains(event.target)
+      ) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setNotificationsOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [notificationsOpen]);
+
+  useEffect(() => {
     if (!commandPaletteOpen) {
       return;
     }
@@ -454,7 +665,97 @@ export function Dashboard() {
   const focusMedicine = () => {
     setViewMode("medicine-focus");
     setSelectedNodeId(selectedMedicineId);
+    setPanelNodeId(selectedMedicineId);
+    setExpandedNodeId(null);
     writeUrlGraphMode("focused");
+  };
+
+  const handleAgentStreamPart = (part: AgentStreamPart) => {
+    if (part.type === "data-agent-step") {
+      setStreamSteps((currentSteps) =>
+        currentSteps.map((step) =>
+          step.id === part.data.id
+            ? {
+                ...step,
+                label: part.data.label,
+                status: part.data.status,
+                summary: part.data.summary ?? step.summary,
+                toolCount: part.data.toolCount,
+              }
+            : step,
+        ),
+      );
+      return;
+    }
+
+    if (part.type === "data-agent-tool") {
+      setStreamSteps((currentSteps) =>
+        currentSteps.map((step) =>
+          step.id === part.data.stepId
+            ? {
+                ...step,
+                tools: step.tools.map((tool) =>
+                  tool.id === part.data.id
+                    ? {
+                        ...tool,
+                        label: part.data.label,
+                        outputSummary: part.data.outputSummary ?? tool.outputSummary,
+                        status: part.data.status,
+                        toolName: part.data.toolName,
+                      }
+                    : tool,
+                ),
+              }
+            : step,
+        ),
+      );
+      return;
+    }
+
+    if (part.type === "data-agent-reasoning") {
+      setStreamSteps((currentSteps) =>
+        currentSteps.map((step) => {
+          if (step.id !== part.data.stepId) {
+            return step;
+          }
+
+          const existingReasoning = step.reasoning.find((item) => item.id === part.data.id);
+          const nextReasoning: InvestigationReasoningSummary = {
+            afterToolId: part.data.afterToolId,
+            beforeToolId: part.data.beforeToolId,
+            id: part.data.id,
+            status: part.data.status,
+            text: part.data.text,
+          };
+
+          return {
+            ...step,
+            reasoning: existingReasoning
+              ? step.reasoning.map((item) =>
+                  item.id === part.data.id ? { ...item, ...nextReasoning } : item,
+                )
+              : [...step.reasoning, nextReasoning],
+          };
+        }),
+      );
+      return;
+    }
+
+    if (part.type === "data-graph-update") {
+      setAddedEvidence(true);
+      setPulsePath(true);
+      setInsertingNodeId(part.data.addedEvidenceNodeIds.at(-1) ?? scriptedSourceId);
+      window.setTimeout(() => setPulsePath(false), 1300);
+      window.setTimeout(() => setInsertingNodeId(null), 2600);
+      return;
+    }
+
+    if (part.type === "data-report-ready") {
+      setInvestigationState("complete");
+      setViewMode("report-ready");
+      setPulsePath(true);
+      window.setTimeout(() => setPulsePath(false), 1300);
+    }
   };
 
   const startInvestigation = () => {
@@ -462,19 +763,80 @@ export function Dashboard() {
       return;
     }
 
+    setNotificationsOpen(false);
+    streamAbortRef.current?.abort();
+    setAddedEvidence(false);
+    setInsertingNodeId(null);
+    setStreamSteps(createInitialInvestigationSteps());
     setViewMode("investigating");
     setSelectedNodeId("event-fda-shortage");
+    setPanelNodeId("event-fda-shortage");
+    setExpandedNodeId(null);
     setInvestigationState("running");
     writeUrlGraphMode("focused");
+
+    const abortController = new AbortController();
+    streamAbortRef.current = abortController;
+
+    void fetch("/api/agent", {
+      body: JSON.stringify({
+        messages: [],
+        scenario: carboplatinDemoScenario,
+        selectedNodeId: "event-fda-shortage",
+      }),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+      signal: abortController.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok || !response.body) {
+          throw new Error("Agent stream failed to start.");
+        }
+
+        await readAgentEventStream(response.body, handleAgentStreamPart);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setInvestigationState("idle");
+      });
   };
 
   const selectCommandNode = (node: GraphNode) => {
+    setNotificationsOpen(false);
+
     if (node.id === selectedMedicineId) {
       focusMedicine();
       return;
     }
 
     setSelectedNodeId(node.id);
+    setPanelNodeId(node.id);
+    setExpandedNodeId(null);
+    setViewMode("node-detail");
+    writeUrlGraphMode("focused");
+  };
+
+  const openEvidenceNode = () => {
+    setNotificationsOpen(false);
+    setSelectedNodeId("event-fda-shortage");
+    setPanelNodeId("event-fda-shortage");
+    setExpandedNodeId(null);
+    setViewMode("node-detail");
+    writeUrlGraphMode("focused");
+  };
+
+  const openAddedSourceNode = () => {
+    if (!addedEvidence) {
+      return;
+    }
+
+    setNotificationsOpen(false);
+    setSelectedNodeId(scriptedSourceId);
+    setPanelNodeId(scriptedSourceId);
+    setExpandedNodeId(null);
     setViewMode("node-detail");
     writeUrlGraphMode("focused");
   };
@@ -550,10 +912,30 @@ export function Dashboard() {
             <FileSearch aria-hidden size={15} />
             <span>Investigate</span>
           </button>
-          <button aria-label="Graph Change Timeline" className="medicine-graph-alert" type="button">
-            <Bell aria-hidden size={16} />
-            <span>{addedEvidence ? 5 : 4}</span>
-          </button>
+          <div className="notification-anchor" ref={notificationsRef}>
+            <button
+              aria-expanded={notificationsOpen}
+              aria-label="Graph Change Timeline"
+              className="medicine-graph-alert"
+              type="button"
+              onClick={() => {
+                setCommandPaletteOpen(false);
+                setNotificationsOpen((isOpen) => !isOpen);
+              }}
+            >
+              <Bell aria-hidden size={16} />
+              <span>{addedEvidence ? 5 : 4}</span>
+            </button>
+            {notificationsOpen ? (
+              <GraphNotifications
+                addedEvidence={addedEvidence}
+                investigationState={investigationState}
+                onOpenAddedSource={openAddedSourceNode}
+                onOpenEvidence={openEvidenceNode}
+                onStartInvestigation={startInvestigation}
+              />
+            ) : null}
+          </div>
           <button
             aria-label="Open commands"
             className="medicine-graph-icon"
@@ -569,12 +951,15 @@ export function Dashboard() {
         <MedicineRiskGraph
           activePath={activePath}
           addedEvidence={addedEvidence}
+          expandedNodeId={expandedNodeId}
           hoveredNodeId={hoveredNodeId}
+          insertingNodeId={insertingNodeId}
           mode={graphMode}
           pulsePath={pulsePath}
           selectedNodeId={selectedNode.id}
           onFocusMedicine={focusMedicine}
           onHoverNode={setHoveredNodeId}
+          onExpandNode={setExpandedNodeId}
           onSelectNode={(node) => {
             if (node.kind === "medicine" && node.id === selectedMedicineId) {
               focusMedicine();
@@ -582,6 +967,8 @@ export function Dashboard() {
             }
 
             setSelectedNodeId(node.id);
+            setPanelNodeId(node.id);
+            setExpandedNodeId(null);
             setViewMode("node-detail");
             writeUrlGraphMode("focused");
           }}
@@ -590,15 +977,30 @@ export function Dashboard() {
 
       {sidebarOpen ? (
         <RiskSidePanel
-          key={`${viewMode}-${selectedNode.id}`}
+          key={`${viewMode}-${panelNode.id}`}
           addedEvidence={addedEvidence}
           confidence={confidence}
           details={selectedDetails}
           evidenceCount={evidenceCount}
           investigationState={investigationState}
-          node={selectedNode}
+          highlightedNodeId={selectedNode.id}
+          node={panelNode}
           onBackToOverview={showOverview}
+          onSelectNode={(node) => {
+            setSelectedNodeId(node.id);
+            setPanelNodeId(node.id);
+            setExpandedNodeId(null);
+            setViewMode("node-detail");
+            writeUrlGraphMode("focused");
+          }}
+          onSelectSourceNode={(node) => {
+            setSelectedNodeId(node.id);
+            setExpandedNodeId(null);
+            setViewMode("node-detail");
+            writeUrlGraphMode("focused");
+          }}
           onStartInvestigation={startInvestigation}
+          streamSteps={streamSteps}
           viewMode={viewMode}
         />
       ) : null}
@@ -612,6 +1014,83 @@ export function Dashboard() {
         onQueryChange={setCommandQuery}
       />
     </main>
+  );
+}
+
+function GraphNotifications({
+  addedEvidence,
+  investigationState,
+  onOpenAddedSource,
+  onOpenEvidence,
+  onStartInvestigation,
+}: {
+  addedEvidence: boolean;
+  investigationState: "complete" | "idle" | "running";
+  onOpenAddedSource: () => void;
+  onOpenEvidence: () => void;
+  onStartInvestigation: () => void;
+}) {
+  return (
+    <div className="graph-notification-popover" role="dialog" aria-label="Graph change timeline">
+      <div className="graph-notification-head">
+        <span>
+          <Bell aria-hidden size={14} />
+          Graph changes
+        </span>
+        <strong>{addedEvidence ? "5 updates" : "4 updates"}</strong>
+      </div>
+
+      <div className="timeline-list graph-notification-list">
+        <TimelineItem
+          icon={<Activity aria-hidden size={14} />}
+          text="Risk path opened for Carboplatin Injection"
+        />
+        <TimelineItem
+          icon={<RouteIcon aria-hidden size={14} />}
+          text="Supplier chain anchored to FDA shortage evidence"
+        />
+        {investigationState === "running" ? (
+          <TimelineItem
+            icon={<Loader2 aria-hidden size={14} />}
+            isRunning
+            text="AI investigation is updating the graph"
+          />
+        ) : null}
+        {addedEvidence ? (
+          <TimelineItem
+            icon={<CheckCircle2 aria-hidden size={14} />}
+            text="Added Times of India API report evidence"
+          />
+        ) : (
+          <TimelineItem
+            icon={<FileSearch aria-hidden size={14} />}
+            text="One newer public source is ready to investigate"
+          />
+        )}
+      </div>
+
+      <div className="graph-notification-actions">
+        <button type="button" onClick={onOpenEvidence}>
+          <FileText aria-hidden size={14} />
+          FDA evidence
+        </button>
+        {addedEvidence ? (
+          <button type="button" onClick={onOpenAddedSource}>
+            <ExternalLink aria-hidden size={14} />
+            New source
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={investigationState === "running"}
+            onClick={onStartInvestigation}
+          >
+            <Sparkles aria-hidden size={14} />
+            Investigate
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -765,8 +1244,11 @@ function CommandPalette({
 function MedicineRiskGraph({
   activePath,
   addedEvidence,
+  expandedNodeId,
   hoveredNodeId,
+  insertingNodeId,
   mode,
+  onExpandNode,
   onFocusMedicine,
   onHoverNode,
   onSelectNode,
@@ -775,8 +1257,11 @@ function MedicineRiskGraph({
 }: {
   activePath: Set<string>;
   addedEvidence: boolean;
+  expandedNodeId: string | null;
   hoveredNodeId: string | null;
+  insertingNodeId: string | null;
   mode: GraphMode;
+  onExpandNode: (id: string | null) => void;
   onFocusMedicine: () => void;
   onHoverNode: (id: string | null) => void;
   onSelectNode: (node: GraphNode) => void;
@@ -950,6 +1435,8 @@ function MedicineRiskGraph({
         const isSource = node.kind === "source";
         const isHoveredNode = hoveredNodeIds.has(node.id);
         const isHoveredMedicineNode = hoveredMedicineNodeIds.has(node.id);
+        const isSelectedNode = selectedNodeId === node.id;
+        const isOverviewMedicine = mode === "overview" && node.kind === "medicine";
         const nodeStyle = riskStyleFor(node, {
           "--node-delay": `${Math.min(index * 10, 220)}ms`,
           left: `${point.x}%`,
@@ -969,7 +1456,9 @@ function MedicineRiskGraph({
               Boolean(isHoveredNode || (hoveredMedicineId && isHoveredMedicineNode)) &&
                 "is-hover-trace",
               Boolean(hoveredNode && !isHoveredNode && !isHoveredMedicineNode) && "is-hover-muted",
-              selectedNodeId === node.id && "is-selected",
+              isSelectedNode && !isOverviewMedicine && "is-selected",
+              expandedNodeId === node.id && "is-expanded",
+              insertingNodeId === node.id && "is-inserting",
               node.id === selectedMedicineId && "is-critical-medicine",
               node.id === scriptedSourceId && "is-new-evidence",
               isSource && "is-evidence-satellite",
@@ -977,6 +1466,14 @@ function MedicineRiskGraph({
             )}
             key={`${mode}-${node.id}`}
             onClick={() => {
+              onHoverNode(null);
+
+              if (mode === "overview" && node.kind === "medicine") {
+                onExpandNode(node.id);
+              } else {
+                onExpandNode(null);
+              }
+
               if (node.id === selectedMedicineId) {
                 onFocusMedicine();
                 return;
@@ -984,50 +1481,31 @@ function MedicineRiskGraph({
 
               onSelectNode(node);
             }}
-            onMouseEnter={() => onHoverNode(node.id)}
-            onMouseLeave={() => onHoverNode(null)}
+            onPointerDown={() => {
+              if (mode === "overview" && node.kind === "medicine") {
+                onExpandNode(node.id);
+              }
+            }}
+            onMouseEnter={() => {
+              if (mode !== "overview") {
+                onHoverNode(node.id);
+              }
+            }}
+            onMouseLeave={() => {
+              if (mode !== "overview") {
+                onHoverNode(null);
+              }
+            }}
             style={nodeStyle}
             type="button"
           >
             <span className="node-icon">{kindIcons[node.kind]}</span>
             <strong>{node.label}</strong>
-            <small>{node.summary}</small>
+            <small>{node.riskReason ?? node.summary}</small>
             {node.metric ? <em>{node.metric}</em> : null}
           </button>
         );
       })}
-
-      {hoveredNode ? (
-        <HoverPreview mode={mode} node={hoveredNode} point={pointFor(hoveredNode)} />
-      ) : null}
-    </div>
-  );
-}
-
-function HoverPreview({
-  mode,
-  node,
-  point,
-}: {
-  mode: GraphMode;
-  node: GraphNode;
-  point: { x: number; y: number };
-}) {
-  const score = riskScoreFor(node);
-
-  return (
-    <div
-      className={cn("graph-hover-preview", `risk-${node.risk}`, mode === "focused" && "is-focused")}
-      style={{
-        left: `${Math.min(point.x + 2, 76)}%`,
-        top: `${Math.max(point.y - 9, 12)}%`,
-      }}
-    >
-      <span>
-        {node.kind} · risk {score}
-      </span>
-      <strong>{node.label}</strong>
-      <p>{node.riskReason ?? node.summary}</p>
     </div>
   );
 }
@@ -1037,24 +1515,49 @@ function RiskSidePanel({
   confidence,
   details,
   evidenceCount,
+  highlightedNodeId,
   investigationState,
   node,
   onBackToOverview,
+  onSelectNode,
+  onSelectSourceNode,
   onStartInvestigation,
+  streamSteps,
   viewMode,
 }: {
   addedEvidence: boolean;
   confidence: string;
   details: NodeDetails[string];
   evidenceCount: number;
+  highlightedNodeId: string;
   investigationState: "complete" | "idle" | "running";
   node: GraphNode;
   onBackToOverview: () => void;
+  onSelectNode: (node: GraphNode) => void;
+  onSelectSourceNode: (node: GraphNode) => void;
   onStartInvestigation: () => void;
+  streamSteps: InvestigationStreamStep[];
   viewMode: ViewMode;
 }) {
   const isSource = node.kind === "source";
   const primarySource = details.sources[0];
+  const visualEvidence = details.sources.slice(0, 3);
+  const actionPathNodes = supplierRiskPath
+    .map((nodeId) => graphNodes.find((candidate) => candidate.id === nodeId))
+    .filter((candidate): candidate is GraphNode => Boolean(candidate));
+  const shortageEvidenceNode = graphNodes.find(
+    (candidate) => candidate.id === "event-fda-shortage",
+  );
+  const panelFinding =
+    node.id === "event-fda-shortage"
+      ? "Active shortage signal with supplier-level constraints."
+      : node.id === "event-gmp"
+        ? "Quality compliance is the clearest supplier constraint."
+        : node.id === "supplier-accord-intas"
+          ? "This supplier path carries the strongest action signal."
+          : node.kind === "source"
+            ? "Evidence supporting the mapped carboplatin risk path."
+            : (node.riskReason ?? details.whyItMatters);
 
   if (viewMode === "investigating" || viewMode === "report-ready") {
     return (
@@ -1062,6 +1565,7 @@ function RiskSidePanel({
         addedEvidence={addedEvidence}
         investigationState={investigationState}
         onBackToOverview={onBackToOverview}
+        streamSteps={streamSteps}
         viewMode={viewMode}
       />
     );
@@ -1077,67 +1581,104 @@ function RiskSidePanel({
         <span>Node evidence</span>
       </div>
 
-      <section className="risk-profile-block">
-        <div className="risk-profile-title">
-          <span className={cn("risk-dot", `risk-${node.risk}`)} />
+      <section className="visual-risk-card">
+        <div className="visual-risk-hero">
+          <span className={cn("risk-orb", `risk-${node.risk}`)}>{riskScoreFor(node)}</span>
           <div>
-            <p>{node.kind === "medicine" ? "Risk Profile" : "Node Investigation"}</p>
+            <p>{node.kind === "source" ? "Evidence" : "Supply Risk"}</p>
             <h1>{node.label}</h1>
+            <strong>{panelFinding}</strong>
           </div>
         </div>
 
-        <div className="risk-score-row">
-          <div>
-            <span>Availability risk</span>
-            <strong>{riskScoreFor(node)}</strong>
-          </div>
-          <div>
-            <span>Confidence</span>
-            <strong>{node.id === selectedMedicineId ? confidence : details.confidence}</strong>
-          </div>
-          <div>
-            <span>Evidence</span>
-            <strong>
-              {node.id === selectedMedicineId ? evidenceCount : details.sources.length}
-            </strong>
-          </div>
-        </div>
-
-        <p className="risk-panel-copy">{details.whyItMatters}</p>
-      </section>
-
-      <section className="risk-panel-section">
-        <h2>Care Impact</h2>
-        <p>
-          Used in oncology treatment where delayed availability can force allocation, substitution,
-          or treatment timing decisions.
-        </p>
-      </section>
-
-      <section className="risk-panel-section">
-        <h2>Recommended Action</h2>
-        <div className="recommendation-box">
-          <strong>Prepare alternate supplier order</strong>
-          <p>
-            Verify usable supplier availability, lead time, and formulary alternatives before
-            oncology stock falls below safety threshold.
-          </p>
+        <div className="visual-stat-row" aria-label="Risk evidence summary">
+          <span>
+            <ShieldAlert aria-hidden size={14} />
+            {node.id === selectedMedicineId ? confidence : details.confidence}
+          </span>
+          <span>
+            <FileText aria-hidden size={14} />
+            {node.id === selectedMedicineId ? evidenceCount : details.sources.length} sources
+          </span>
         </div>
       </section>
 
-      <section className="risk-panel-section">
+      <section className="visual-path-card" aria-label="Highlighted risk path">
+        <h2>Risk path</h2>
+        {actionPathNodes.map((pathNode, index) => (
+          <button
+            className={cn(pathNode.id === node.id && "is-current")}
+            key={pathNode.id}
+            type="button"
+            onClick={() => onSelectNode(pathNode)}
+          >
+            <span>{index + 1}</span>
+            <strong>{pathNode.label}</strong>
+          </button>
+        ))}
+        {shortageEvidenceNode ? (
+          <button
+            className={cn(
+              "visual-path-evidence",
+              shortageEvidenceNode.id === node.id && "is-current",
+            )}
+            type="button"
+            onClick={() => onSelectNode(shortageEvidenceNode)}
+          >
+            <span>
+              <FileText aria-hidden size={13} />
+            </span>
+            <div>
+              <small>Evidence status</small>
+              <strong>{shortageEvidenceNode.label}</strong>
+            </div>
+          </button>
+        ) : null}
+      </section>
+
+      <section className="visual-evidence-card" aria-label="Mapped evidence">
         <h2>Evidence</h2>
-        <div className="evidence-list">
-          {details.sources.map((source) => (
-            <article key={source.title}>
-              <FileText aria-hidden size={15} />
-              <div>
+        <div className="visual-evidence-strip">
+          {visualEvidence.map((source) => {
+            const sourceNode = findSourceNodeForEvidence(source);
+
+            return (
+              <button
+                className={cn(sourceNode?.id === highlightedNodeId && "is-current")}
+                disabled={!sourceNode}
+                key={source.title}
+                type="button"
+                onClick={() => {
+                  if (sourceNode) {
+                    onSelectSourceNode(sourceNode);
+                  }
+                }}
+              >
+                <FileText aria-hidden size={15} />
                 <strong>{source.title}</strong>
-                <span>{source.meta}</span>
-              </div>
-            </article>
-          ))}
+              </button>
+            );
+          })}
         </div>
+      </section>
+
+      <section className="visual-impact-card">
+        <div>
+          <Activity aria-hidden size={18} />
+          <strong>Oncology availability risk</strong>
+        </div>
+        <p>Delays can force allocation, substitution, or treatment timing decisions.</p>
+      </section>
+
+      <section className="visual-action-card">
+        <div>
+          <strong>Investigate supplier readiness</strong>
+          <p>Check approved alternatives and lead times before stock drops below threshold.</p>
+        </div>
+        <button type="button" onClick={onStartInvestigation}>
+          <Sparkles aria-hidden size={15} />
+          Investigate
+        </button>
         {isSource && primarySource ? (
           <a
             className="open-source-action"
@@ -1149,40 +1690,6 @@ function RiskSidePanel({
           </a>
         ) : null}
       </section>
-
-      <section className="risk-panel-section">
-        <h2>Facts</h2>
-        <ul className="fact-list">
-          {details.facts.map((fact) => (
-            <li key={fact}>{fact}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="risk-panel-section">
-        <h2>Graph Investigation</h2>
-        <div className="prompt-list">
-          {details.prompts.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={prompt === "Find newer evidence" ? onStartInvestigation : undefined}
-            >
-              <Sparkles aria-hidden size={14} />
-              {prompt}
-            </button>
-          ))}
-        </div>
-        <div className="agent-input" aria-label="Graph investigation input">
-          <Bot aria-hidden size={15} />
-          <span>Ask agent to evaluate evidence relevance...</span>
-        </div>
-      </section>
-
-      <InvestigationTimeline
-        addedEvidence={addedEvidence}
-        investigationState={investigationState}
-      />
     </aside>
   );
 }
@@ -1191,26 +1698,46 @@ function InvestigationPanel({
   addedEvidence,
   investigationState,
   onBackToOverview,
+  streamSteps,
   viewMode,
 }: {
   addedEvidence: boolean;
   investigationState: "complete" | "idle" | "running";
   onBackToOverview: () => void;
+  streamSteps: InvestigationStreamStep[];
   viewMode: ViewMode;
 }) {
-  const toolCalls = [
-    "Inspect FDA shortage evidence",
-    "Check supplier-level constraints",
-    "Search newer API-risk sources",
-    "Add supporting evidence",
-    "Prepare report context",
-  ];
+  const panelRef = useRef<HTMLElement>(null);
   const isReportReady = viewMode === "report-ready";
+  const replayState = getCarboplatinDemoReplayState(
+    isReportReady ? "report-ready" : investigationState === "running" ? "running" : "idle",
+  );
+
+  useEffect(() => {
+    if (investigationState !== "running") {
+      return;
+    }
+
+    const panel = panelRef.current;
+    if (!panel) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      panel.scrollTo({
+        behavior: "smooth",
+        top: panel.scrollHeight - panel.clientHeight,
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [investigationState, streamSteps]);
 
   return (
     <aside
       className={cn("risk-side-panel", "investigation-panel", isReportReady && "is-report-ready")}
       aria-label="AI graph investigation"
+      ref={panelRef}
     >
       <div className="risk-panel-head">
         <button type="button" onClick={onBackToOverview}>
@@ -1231,32 +1758,108 @@ function InvestigationPanel({
         <p className="risk-panel-copy">
           {isReportReady
             ? "Evidence, risk path, and recommended action are ready for the hospital report module."
-            : "The agent is checking the mapped shortage evidence and looking for one supporting source."}
+            : "The agent is gathering mapped context, searching for one newer source, and preparing a graph update."}
         </p>
       </section>
 
       <section className="risk-panel-section">
-        <h2>Tool Calls</h2>
-        <div className="tool-call-list">
-          {toolCalls.map((toolCall, index) => {
-            const isDone = isReportReady || index < 3 || (addedEvidence && index < 4);
-            const isRunning = investigationState === "running" && !isDone && index === 3;
+        <h2>Steps</h2>
+        <div className="step-call-list">
+          {streamSteps.map((step) => {
+            const isDone = step.status === "complete";
+            const isRunning = step.status === "running";
+            const visibleTools = isRunning
+              ? step.tools
+              : step.tools.filter((tool) => tool.status === "complete");
+            const visibleReasoningIds = new Set(
+              (isRunning ? step.reasoning.slice(-4) : []).map((reasoning) => reasoning.id),
+            );
+            const standaloneReasoning = isRunning
+              ? step.reasoning.filter(
+                  (item) =>
+                    visibleReasoningIds.has(item.id) && !item.beforeToolId && !item.afterToolId,
+                )
+              : [];
+            const reasoningBeforeTool = (toolId: string) =>
+              isRunning
+                ? step.reasoning.filter(
+                    (item) => visibleReasoningIds.has(item.id) && item.beforeToolId === toolId,
+                  )
+                : [];
+            const reasoningAfterTool = (toolId: string) =>
+              isRunning
+                ? step.reasoning.filter(
+                    (item) => visibleReasoningIds.has(item.id) && item.afterToolId === toolId,
+                  )
+                : [];
 
             return (
               <article
-                className={cn("tool-call-item", isDone && "is-done", isRunning && "is-running")}
-                key={toolCall}
+                className={cn("step-call-item", isDone && "is-done", isRunning && "is-running")}
+                key={step.id}
               >
-                <span>
-                  {isDone ? (
-                    <CheckCircle2 aria-hidden size={14} />
-                  ) : isRunning ? (
-                    <Loader2 aria-hidden size={14} />
-                  ) : (
-                    <Bot aria-hidden size={14} />
-                  )}
-                </span>
-                <p>{toolCall}</p>
+                <div className="step-call-head">
+                  <span>
+                    {isDone ? (
+                      <CheckCircle2 aria-hidden size={14} />
+                    ) : isRunning ? (
+                      <Loader2 aria-hidden size={14} />
+                    ) : (
+                      <Bot aria-hidden size={14} />
+                    )}
+                  </span>
+                  <div>
+                    <strong>
+                      {iconForStep(step.id)}
+                      {step.label}
+                    </strong>
+                    <p>
+                      {isDone
+                        ? `${step.toolCount} tools completed`
+                        : isRunning
+                          ? runningStepCopy(step.id)
+                          : `${step.toolCount} tools queued`}
+                    </p>
+                  </div>
+                </div>
+                {isDone && step.summary ? (
+                  <p className="step-call-summary">{step.summary}</p>
+                ) : null}
+                {visibleTools.length > 0 ? (
+                  <div className="step-tool-list">
+                    {standaloneReasoning.map((reasoning) => (
+                      <StepReasoningItem key={reasoning.id} reasoning={reasoning} />
+                    ))}
+                    {visibleTools.flatMap((tool) => [
+                      ...reasoningBeforeTool(tool.id).map((reasoning) => (
+                        <StepReasoningItem key={reasoning.id} reasoning={reasoning} />
+                      )),
+                      <div
+                        className={cn(
+                          "step-tool-item",
+                          tool.status === "complete" && "is-done",
+                          tool.status === "running" && "is-running",
+                        )}
+                        key={tool.id}
+                      >
+                        {tool.status === "complete" ? (
+                          <CheckCircle2 aria-hidden size={12} />
+                        ) : tool.status === "running" ? (
+                          <Loader2 aria-hidden size={12} />
+                        ) : (
+                          <Bot aria-hidden size={12} />
+                        )}
+                        <div>
+                          <strong>{tool.label}</strong>
+                          <span>{tool.outputSummary ?? tool.toolName}</span>
+                        </div>
+                      </div>,
+                      ...reasoningAfterTool(tool.id).map((reasoning) => (
+                        <StepReasoningItem key={reasoning.id} reasoning={reasoning} />
+                      )),
+                    ])}
+                  </div>
+                ) : null}
               </article>
             );
           })}
@@ -1264,22 +1867,42 @@ function InvestigationPanel({
       </section>
 
       <section className="risk-panel-section">
-        <h2>{isReportReady ? "Report Preview" : "Agent Notes"}</h2>
+        <h2>{isReportReady ? "Report Preview" : "Completed Steps"}</h2>
         {isReportReady ? (
           <ReportPreview />
         ) : (
           <div className="agent-message-list">
-            <article>
-              <Bot aria-hidden size={15} />
-              <p>Action path remains FDA shortage to Accord / Intas GMP constraint.</p>
-            </article>
-            <article>
-              <FileSearch aria-hidden size={15} />
-              <p>Searching for one supporting API source without creating a second alert path.</p>
-            </article>
+            {replayState.messages.map((message) => (
+              <article key={message.id}>
+                {message.kind === "source" ? (
+                  <FileSearch aria-hidden size={15} />
+                ) : (
+                  <Bot aria-hidden size={15} />
+                )}
+                <p>{message.text}</p>
+              </article>
+            ))}
           </div>
         )}
       </section>
+
+      {addedEvidence && !isReportReady ? (
+        <section className="risk-panel-section new-source-card">
+          <h2>Inserted Evidence Node</h2>
+          <article>
+            <FileText aria-hidden size={15} />
+            <div>
+              <strong>{replayState.source.title}</strong>
+              <span>
+                {replayState.source.publisher} · {replayState.source.mode}
+              </span>
+            </div>
+            <a href={replayState.source.url} rel="noreferrer" target="_blank">
+              Open <ExternalLink aria-hidden size={13} />
+            </a>
+          </article>
+        </section>
+      ) : null}
 
       <InvestigationTimeline
         addedEvidence={addedEvidence}
@@ -1287,6 +1910,51 @@ function InvestigationPanel({
       />
     </aside>
   );
+}
+
+function StepReasoningItem({ reasoning }: { reasoning: InvestigationReasoningSummary }) {
+  return (
+    <div className={cn("step-reasoning-item", reasoning.status === "streaming" && "is-streaming")}>
+      <Bot aria-hidden size={12} />
+      <div>
+        <strong>Reasoning</strong>
+        <p>{reasoning.text}</p>
+      </div>
+    </div>
+  );
+}
+
+function runningStepCopy(stepId: string) {
+  const copyByStepId: Record<string, string> = {
+    "map-current-evidence": "Reading current evidence anchors",
+    "prepare-report": "Preparing the action handoff",
+    "search-newer-sources": "Checking source credibility",
+    "update-graph": "Adding the credible source node",
+  };
+
+  return copyByStepId[stepId] ?? "Running grouped tool calls";
+}
+
+function iconForStep(stepId: string) {
+  const iconProps = { "aria-hidden": true, size: 13 };
+
+  if (stepId === "map-current-evidence") {
+    return <RouteIcon {...iconProps} />;
+  }
+
+  if (stepId === "search-newer-sources") {
+    return <Radar {...iconProps} />;
+  }
+
+  if (stepId === "update-graph") {
+    return <Workflow {...iconProps} />;
+  }
+
+  if (stepId === "prepare-report") {
+    return <FileText {...iconProps} />;
+  }
+
+  return <Bot {...iconProps} />;
 }
 
 function ReportPreview() {

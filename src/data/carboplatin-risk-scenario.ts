@@ -68,8 +68,10 @@ export const riskPathBase = [
   "event-gmp",
 ];
 
+export const supplierRiskPath = [selectedMedicineId, "supplier-accord-intas", "event-gmp"];
+
 export const carboplatinReportPreview: SupplyRiskReportPreview = {
-  actionPathNodeIds: riskPathBase,
+  actionPathNodeIds: supplierRiskPath,
   caveats: [
     "Patient impact is narration only and not represented as patient-level data.",
     "Upstream platinum and API signals are risk amplifiers, not the direct proven cause.",

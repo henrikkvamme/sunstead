@@ -1,6 +1,11 @@
 import { readServerEnv, type SunsteadServerEnv } from "#/env";
 
-import { buildNodeInvestigationPrompt, type NodeInvestigationPromptInput } from "./prompts";
+import { type SupplyRiskAgentScenario } from "./carboplatin-demo";
+import {
+  buildCarboplatinManagedInvestigationPrompt,
+  buildNodeInvestigationPrompt,
+  type NodeInvestigationPromptInput,
+} from "./prompts";
 
 export const claudeManagedAgentsBetaHeader = "managed-agents-2026-04-01";
 export const defaultAnthropicApiBaseUrl = "https://api.anthropic.com";
@@ -42,6 +47,7 @@ export type ClaudeManagedAgentUserEvent = {
 };
 
 export type ClaudeManagedSourceInvestigationInput = NodeInvestigationPromptInput & {
+  scenario?: SupplyRiskAgentScenario;
   sessionId?: string;
 };
 
@@ -218,7 +224,10 @@ export async function startClaudeManagedSourceInvestigation(
     client = new ClaudeManagedAgentClient(resolved.config);
   }
 
-  const prompt = buildNodeInvestigationPrompt(input);
+  const prompt =
+    input.scenario === "carboplatin-demo"
+      ? buildCarboplatinManagedInvestigationPrompt(input)
+      : buildNodeInvestigationPrompt(input);
   const session =
     input.sessionId === undefined
       ? await client.createSession({ signal: options.signal })

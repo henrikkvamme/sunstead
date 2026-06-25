@@ -2,6 +2,12 @@ import { tool } from "ai";
 import { z } from "zod";
 
 import {
+  getCarboplatinDemoReplayState,
+  isSupplyRiskAgentScenario,
+  normalizeCarboplatinManagedInvestigationResult,
+  type SupplyRiskAgentScenario,
+} from "./carboplatin-demo";
+import {
   startClaudeManagedSourceInvestigation,
   type StartClaudeManagedSourceInvestigationOptions,
 } from "./claude-managed-agent";
@@ -15,6 +21,7 @@ import {
 
 export type CreateSupplyRiskAgentToolsOptions = {
   managedInvestigation?: StartClaudeManagedSourceInvestigationOptions;
+  scenario?: SupplyRiskAgentScenario;
 };
 
 export function createSupplyRiskAgentTools(options: CreateSupplyRiskAgentToolsOptions = {}) {
@@ -60,8 +67,22 @@ export function createSupplyRiskAgentTools(options: CreateSupplyRiskAgentToolsOp
           .optional()
           .describe("Existing Claude Managed Agents session id to resume."),
       }),
-      execute: async (input) =>
-        startClaudeManagedSourceInvestigation(input, options.managedInvestigation),
+      execute: async (input) => {
+        const result = await startClaudeManagedSourceInvestigation(
+          { ...input, scenario: options.scenario },
+          options.managedInvestigation,
+        );
+
+        if (!isSupplyRiskAgentScenario(options.scenario)) {
+          return result;
+        }
+
+        return {
+          managedInvestigation: result,
+          normalized: normalizeCarboplatinManagedInvestigationResult(result),
+          replay: getCarboplatinDemoReplayState("report-ready"),
+        };
+      },
     }),
   };
 }
