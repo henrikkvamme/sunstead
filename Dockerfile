@@ -9,6 +9,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY package.json bun.lock ./
+COPY video-remotion/package.json ./video-remotion/package.json
 RUN bun install --frozen-lockfile
 
 COPY . .
