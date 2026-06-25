@@ -35,6 +35,27 @@ export type NodeDetails = Record<
   }
 >;
 
+export type SupplyRiskReportPreview = {
+  actionPathNodeIds: string[];
+  caveats: string[];
+  confidence: {
+    label: string;
+    rationale: string;
+  };
+  evidenceSourceNodeIds: string[];
+  generatedAtLabel: string;
+  headlineFinding: string;
+  id: string;
+  medicineId: string;
+  recommendedAction: {
+    checklist: string[];
+    summary: string;
+    title: string;
+  };
+  status: "action-needed" | "stable" | "watch";
+  title: string;
+};
+
 export const selectedMedicineId = "med-carboplatin";
 export const selectedMedicineSlug = "carboplatin-injection";
 export const scriptedSourceId = "source-times-india-2026";
@@ -46,6 +67,38 @@ export const riskPathBase = [
   "supplier-accord-intas",
   "event-gmp",
 ];
+
+export const carboplatinReportPreview: SupplyRiskReportPreview = {
+  actionPathNodeIds: riskPathBase,
+  caveats: [
+    "Patient impact is narration only and not represented as patient-level data.",
+    "Upstream platinum and API signals are risk amplifiers, not the direct proven cause.",
+  ],
+  confidence: {
+    label: "High",
+    rationale:
+      "Current shortage evidence is backed by primary shortage sources; API evidence is supporting context.",
+  },
+  evidenceSourceNodeIds: ["source-fda-carboplatin", "source-ashp-carboplatin", scriptedSourceId],
+  generatedAtLabel: "Prepared from mapped evidence",
+  headlineFinding:
+    "Active shortage evidence and a supplier quality constraint create a high-risk path for hospital-ready carboplatin supply.",
+  id: "report-carboplatin-demo",
+  medicineId: selectedMedicineId,
+  recommendedAction: {
+    checklist: [
+      "Check approved alternatives",
+      "Confirm lead times",
+      "Review current stock and safety threshold",
+      "Escalate oncology allocation policy only if inventory drops",
+    ],
+    summary:
+      "Verify approved supplier availability and lead time before stock falls below safety threshold.",
+    title: "Prepare alternate supplier order",
+  },
+  status: "action-needed",
+  title: "Carboplatin Injection Supply Risk Brief",
+};
 
 export const graphNodes: GraphNode[] = [
   {
@@ -379,14 +432,55 @@ export const graphNodes: GraphNode[] = [
     summary: "Market signal explains upstream fragility without claiming direct causality.",
   },
   {
+    id: "source-fda-cisplatin",
+    kind: "source",
+    label: "FDA cisplatin shortage",
+    metric: "primary",
+    overview: { x: 77, y: 4 },
+    risk: "stable",
+    riskScore: 20,
+    summary: "Primary source for related platinum chemotherapy shortage status.",
+  },
+  {
+    id: "source-fda-oxaliplatin",
+    kind: "source",
+    label: "FDA oxaliplatin listing",
+    metric: "primary",
+    overview: { x: 95, y: 57 },
+    risk: "stable",
+    riskScore: 18,
+    summary: "Primary shortage database signal for related platinum chemotherapy context.",
+  },
+  {
+    id: "source-ashp-oncology",
+    kind: "source",
+    label: "ASHP oncology listings",
+    metric: "clinical",
+    overview: { x: 61, y: 96 },
+    risk: "stable",
+    riskScore: 19,
+    summary: "Clinical pharmacy shortage listings for oncology sterile injectables.",
+  },
+  {
+    detail: { x: 86, y: 24 },
+    id: "source-fda-sterile-injectables",
+    kind: "source",
+    label: "Guardian injectable shortage",
+    metric: "news",
+    overview: { x: 35, y: 6 },
+    risk: "stable",
+    riskScore: 18,
+    summary: "News analysis of generic sterile injectable manufacturing fragility.",
+  },
+  {
     detail: { x: 86, y: 38 },
     id: "source-fda-carboplatin",
     kind: "source",
     label: "FDA shortage page",
     metric: "primary",
     overview: { x: 15, y: 8 },
-    risk: "critical",
-    riskScore: 82,
+    risk: "stable",
+    riskScore: 20,
     summary: "Primary source for current shortage and supplier-level constraints.",
   },
   {
@@ -396,8 +490,8 @@ export const graphNodes: GraphNode[] = [
     label: "ASHP shortage page",
     metric: "clinical",
     overview: { x: 10, y: 52 },
-    risk: "critical",
-    riskScore: 78,
+    risk: "stable",
+    riskScore: 20,
     summary: "Clinical shortage source for usual-ordering availability.",
   },
   {
@@ -405,8 +499,8 @@ export const graphNodes: GraphNode[] = [
     kind: "source",
     label: "Axios cancer shortage",
     overview: { x: 93, y: 16 },
-    risk: "elevated",
-    riskScore: 55,
+    risk: "stable",
+    riskScore: 18,
     summary: "News context for rationing, delays, and generic oncology fragility.",
   },
   {
@@ -414,8 +508,8 @@ export const graphNodes: GraphNode[] = [
     kind: "source",
     label: "NCCN survey article",
     overview: { x: 74, y: 10 },
-    risk: "elevated",
-    riskScore: 53,
+    risk: "stable",
+    riskScore: 18,
     summary: "Supports oncology-center impact statistics from the 2023 wave.",
   },
   {
@@ -423,18 +517,18 @@ export const graphNodes: GraphNode[] = [
     kind: "source",
     label: "FT Intas analysis",
     overview: { x: 87, y: 24 },
-    risk: "elevated",
-    riskScore: 58,
+    risk: "stable",
+    riskScore: 18,
     summary: "News analysis of Intas / Accord quality failure and market fragility.",
   },
   {
     id: "source-marketwatch-platinum",
     kind: "source",
-    label: "Platinum market report",
+    label: "WPIC platinum deficit",
     overview: { x: 82, y: 92 },
-    risk: "watch",
-    riskScore: 35,
-    summary: "Supports the upstream platinum deficit signal.",
+    risk: "stable",
+    riskScore: 18,
+    summary: "Industry market evidence for platinum deficit and concentration risk.",
   },
   {
     detail: { x: 86, y: 76 },
@@ -443,14 +537,21 @@ export const graphNodes: GraphNode[] = [
     label: "Times of India API report",
     metric: "new",
     overview: { x: 18, y: 92 },
-    risk: "elevated",
+    risk: "stable",
     riskReason: "New evidence supports the report context without changing the action path.",
-    riskScore: 52,
+    riskScore: 20,
     summary: "Scripted new evidence about 2026 platinum chemotherapy API shortage.",
   },
 ];
 
 export const graphEdges: GraphEdge[] = [
+  {
+    from: selectedMedicineId,
+    id: "e-carboplatin-fda-source",
+    risk: "critical",
+    riskScore: 82,
+    to: "source-fda-carboplatin",
+  },
   {
     actionPath: true,
     from: selectedMedicineId,
@@ -489,11 +590,25 @@ export const graphEdges: GraphEdge[] = [
     to: "component-platinum-api",
   },
   {
+    from: "med-cisplatin",
+    id: "e-cisplatin-fda-source",
+    risk: "elevated",
+    riskScore: 62,
+    to: "source-fda-cisplatin",
+  },
+  {
     from: "med-oxaliplatin",
     id: "e-oxaliplatin-api",
     risk: "elevated",
     riskScore: 54,
     to: "component-platinum-api",
+  },
+  {
+    from: "med-oxaliplatin",
+    id: "e-oxaliplatin-fda-source",
+    risk: "elevated",
+    riskScore: 54,
+    to: "source-fda-oxaliplatin",
   },
   {
     from: "med-methotrexate",
@@ -503,11 +618,25 @@ export const graphEdges: GraphEdge[] = [
     to: "component-oncology-api",
   },
   {
+    from: "med-methotrexate",
+    id: "e-methotrexate-ashp-source",
+    risk: "watch",
+    riskScore: 41,
+    to: "source-ashp-oncology",
+  },
+  {
     from: "med-ifosfamide",
     id: "e-ifosfamide-oncology-api",
     risk: "watch",
     riskScore: 47,
     to: "component-oncology-api",
+  },
+  {
+    from: "med-ifosfamide",
+    id: "e-ifosfamide-ashp-source",
+    risk: "watch",
+    riskScore: 47,
+    to: "source-ashp-oncology",
   },
   {
     from: "med-pemetrexed",
@@ -529,6 +658,13 @@ export const graphEdges: GraphEdge[] = [
     risk: "elevated",
     riskScore: 66,
     to: "supplier-accord-intas",
+  },
+  {
+    from: "component-platinum-api",
+    id: "e-api-times-india-source",
+    risk: "elevated",
+    riskScore: 57,
+    to: scriptedSourceId,
   },
   {
     from: "component-platinum-api",
@@ -588,10 +724,31 @@ export const graphEdges: GraphEdge[] = [
   },
   {
     from: "component-sterile-vial",
+    id: "e-vial-fda-source",
+    risk: "watch",
+    riskScore: 38,
+    to: "source-fda-sterile-injectables",
+  },
+  {
+    from: "component-oncology-api",
+    id: "e-oncology-api-ashp-source",
+    risk: "watch",
+    riskScore: 36,
+    to: "source-ashp-oncology",
+  },
+  {
+    from: "component-sterile-vial",
     id: "e-vial-glass",
     risk: "stable",
     riskScore: 18,
     to: "component-glass-vial",
+  },
+  {
+    from: "supplier-accord-intas",
+    id: "e-accord-fda-source",
+    risk: "critical",
+    riskScore: 82,
+    to: "source-fda-carboplatin",
   },
   {
     from: "supplier-accord-intas",
@@ -610,10 +767,24 @@ export const graphEdges: GraphEdge[] = [
   },
   {
     from: "supplier-eugia",
+    id: "e-eugia-fda-source",
+    risk: "elevated",
+    riskScore: 68,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "supplier-eugia",
     id: "e-eugia-demand",
     risk: "elevated",
     riskScore: 63,
     to: "event-demand",
+  },
+  {
+    from: "supplier-fresenius",
+    id: "e-fresenius-fda-source",
+    risk: "elevated",
+    riskScore: 61,
+    to: "source-fda-carboplatin",
   },
   {
     from: "supplier-fresenius",
@@ -624,10 +795,38 @@ export const graphEdges: GraphEdge[] = [
   },
   {
     from: "supplier-pfizer",
+    id: "e-pfizer-fda-source",
+    risk: "elevated",
+    riskScore: 64,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "supplier-pfizer",
     id: "e-pfizer-demand",
     risk: "elevated",
     riskScore: 64,
     to: "event-demand",
+  },
+  {
+    from: "supplier-gland-bpi",
+    id: "e-gland-fda-source",
+    risk: "watch",
+    riskScore: 44,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "supplier-teva",
+    id: "e-teva-fda-source",
+    risk: "watch",
+    riskScore: 30,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "supplier-apotex",
+    id: "e-apotex-fda-source",
+    risk: "watch",
+    riskScore: 42,
+    to: "source-fda-carboplatin",
   },
   {
     from: "supplier-apotex",
@@ -637,11 +836,32 @@ export const graphEdges: GraphEdge[] = [
     to: "event-discontinued",
   },
   {
+    from: "place-gujarat",
+    id: "e-gujarat-ft-source",
+    risk: "watch",
+    riskScore: 46,
+    to: "source-ft-intas",
+  },
+  {
     from: "component-platinum-raw",
     id: "e-raw-south-africa",
     risk: "elevated",
     riskScore: 50,
     to: "place-south-africa",
+  },
+  {
+    from: "component-platinum-raw",
+    id: "e-raw-marketwatch-source",
+    risk: "elevated",
+    riskScore: 50,
+    to: "source-marketwatch-platinum",
+  },
+  {
+    from: "place-south-africa",
+    id: "e-south-africa-marketwatch-source",
+    risk: "elevated",
+    riskScore: 50,
+    to: "source-marketwatch-platinum",
   },
   {
     from: "place-south-africa",
@@ -666,10 +886,38 @@ export const graphEdges: GraphEdge[] = [
   },
   {
     from: "event-gmp",
+    id: "e-gmp-fda-source",
+    risk: "critical",
+    riskScore: 82,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "event-gmp",
     id: "e-gmp-ft-source",
     risk: "elevated",
     riskScore: 58,
     to: "source-ft-intas",
+  },
+  {
+    from: "event-demand",
+    id: "e-demand-fda-source",
+    risk: "elevated",
+    riskScore: 63,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "event-shipping",
+    id: "e-shipping-fda-source",
+    risk: "elevated",
+    riskScore: 59,
+    to: "source-fda-carboplatin",
+  },
+  {
+    from: "event-discontinued",
+    id: "e-discontinued-fda-source",
+    risk: "watch",
+    riskScore: 43,
+    to: "source-fda-carboplatin",
   },
   {
     from: "place-us-oncology",
@@ -712,30 +960,50 @@ export const graphEdges: GraphEdge[] = [
 
 export const medicineSupplyChainEdges: Record<string, string[]> = {
   [selectedMedicineId]: [
+    "e-carboplatin-fda-source",
     "e-carboplatin-shortage",
     "e-shortage-accord",
     "e-carboplatin-api",
     "e-carboplatin-vial",
     "e-api-accord-intas",
+    "e-api-times-india-source",
     "e-accord-gujarat",
+    "e-accord-fda-source",
     "e-accord-gmp",
+    "e-gmp-fda-source",
     "e-shortage-fda-source",
     "e-shortage-ashp-source",
+    "e-vial-fda-source",
     "e-api-eugia",
+    "e-eugia-fda-source",
     "e-eugia-demand",
+    "e-demand-fda-source",
     "e-api-fresenius",
+    "e-fresenius-fda-source",
     "e-fresenius-shipping",
+    "e-shipping-fda-source",
     "e-api-pfizer",
+    "e-pfizer-fda-source",
     "e-pfizer-demand",
+    "e-api-gland-bpi",
+    "e-gland-fda-source",
+    "e-api-teva",
+    "e-teva-fda-source",
     "e-api-apotex",
+    "e-apotex-fda-source",
     "e-apotex-discontinued",
+    "e-discontinued-fda-source",
     "e-api-raw-platinum",
+    "e-raw-marketwatch-source",
     "e-raw-south-africa",
+    "e-south-africa-marketwatch-source",
     "e-south-africa-deficit",
     "e-platinum-marketwatch",
+    "e-gujarat-ft-source",
   ],
   "med-cisplatin": [
     "e-cisplatin-api",
+    "e-cisplatin-fda-source",
     "e-api-accord-intas",
     "e-accord-gujarat",
     "e-accord-gmp",
@@ -745,12 +1013,13 @@ export const medicineSupplyChainEdges: Record<string, string[]> = {
   ],
   "med-oxaliplatin": [
     "e-oxaliplatin-api",
+    "e-oxaliplatin-fda-source",
     "e-api-raw-platinum",
     "e-raw-south-africa",
     "e-south-africa-deficit",
   ],
-  "med-methotrexate": ["e-methotrexate-oncology-api"],
-  "med-ifosfamide": ["e-ifosfamide-oncology-api"],
+  "med-methotrexate": ["e-methotrexate-oncology-api", "e-methotrexate-ashp-source"],
+  "med-ifosfamide": ["e-ifosfamide-oncology-api", "e-ifosfamide-ashp-source"],
   "med-pemetrexed": ["e-pemetrexed-vial"],
   "med-saline": ["e-saline-vial", "e-vial-glass"],
 };
@@ -777,6 +1046,39 @@ const primarySources = [
     url: "https://www.axios.com/2023/06/14/cancer-drug-shortages-supply-chain-vulnerabilities",
   },
 ];
+
+const additionalSources = {
+  ashpOncology: {
+    meta: "ASHP, current shortage listings",
+    title: "Current Drug Shortages",
+    url: "https://www.ashp.org/drug-shortages/current-shortages",
+  },
+  fdaCisplatin: {
+    meta: "FDA, related platinum chemotherapy",
+    title: "Cisplatin Injection Shortage",
+    url: "https://www.accessdata.fda.gov/scripts/drugshortages/dsp_ActiveIngredientDetails.cfm?AI=Cisplatin+Injection&st=c&tab=tabs-1",
+  },
+  fdaOxaliplatin: {
+    meta: "FDA, related platinum chemotherapy",
+    title: "Oxaliplatin Injection Shortage Listing",
+    url: "https://www.accessdata.fda.gov/scripts/drugshortages/dsp_ActiveIngredientDetails.cfm?AI=Oxaliplatin+Injection&st=c&tab=tabs-1",
+  },
+  fdaSterileInjectables: {
+    meta: "News analysis, generic sterile injectables",
+    title: "Generic drugs in the US are too cheap to be sustainable",
+    url: "https://www.theguardian.com/science/2024/jan/18/us-generic-drugs-prices-causing-shortage",
+  },
+  economicTimesApiCosts: {
+    meta: "News, API and raw-material cost context",
+    title: "Cancer drug prices raised 50% as NPPA acts on shortage concerns",
+    url: "https://economictimes.indiatimes.com/industry/healthcare/biotech/pharmaceuticals/cancer-drug-prices-raised-50-as-nppa-acts-on-shortage-concerns/articleshow/131663737.cms",
+  },
+  wpicPlatinumQuarterly: {
+    meta: "Industry market evidence",
+    title: "Platinum Quarterly",
+    url: "https://platinuminvestment.com/supply-and-demand/platinum-quarterly",
+  },
+};
 
 export const nodeDetails: NodeDetails = {
   [selectedMedicineId]: {
@@ -820,6 +1122,30 @@ export const nodeDetails: NodeDetails = {
     sources: [primarySources[0], primarySources[2]],
     whyItMatters:
       "The API is the upstream component that explains why supplier problems can propagate into hospital-ready chemotherapy supply.",
+  },
+  "component-sterile-vial": {
+    confidence: "Context evidence",
+    facts: [
+      "Sterile injectable fill-finish capacity is a common constraint in drug shortages",
+      "Evidence is contextual, not a direct carboplatin shortage cause",
+      "This node explains why API availability alone is not enough",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [additionalSources.fdaSterileInjectables],
+    whyItMatters:
+      "The vial node represents the sterile manufacturing layer that turns active ingredient into hospital-ready injectable supply.",
+  },
+  "component-oncology-api": {
+    confidence: "Clinical shortage context",
+    facts: [
+      "Oncology injectable shortages often share low-margin manufacturing fragility",
+      "Used as a broader context node for methotrexate and ifosfamide",
+      "This is not the main carboplatin action path",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [additionalSources.ashpOncology],
+    whyItMatters:
+      "The oncology API node shows that Sanitas can see category-level fragility beyond a single medicine.",
   },
   "supplier-accord-intas": {
     confidence: "Critical supplier path",
@@ -891,9 +1217,9 @@ export const nodeDetails: NodeDetails = {
     prompts: ["Find newer evidence", "Explain risk path"],
     sources: [
       {
-        meta: "Market context",
-        title: "Why platinum prices continue to lose luster despite a supply shortage",
-        url: "https://www.marketwatch.com/story/why-platinum-prices-continue-to-lose-luster-despite-a-supply-shortage-72029047",
+        meta: additionalSources.economicTimesApiCosts.meta,
+        title: additionalSources.economicTimesApiCosts.title,
+        url: additionalSources.economicTimesApiCosts.url,
       },
     ],
     whyItMatters:
@@ -909,9 +1235,9 @@ export const nodeDetails: NodeDetails = {
     prompts: ["Find newer evidence", "Explain risk path"],
     sources: [
       {
-        meta: "Market context",
-        title: "Why platinum prices continue to lose luster despite a supply shortage",
-        url: "https://www.marketwatch.com/story/why-platinum-prices-continue-to-lose-luster-despite-a-supply-shortage-72029047",
+        meta: additionalSources.wpicPlatinumQuarterly.meta,
+        title: additionalSources.wpicPlatinumQuarterly.title,
+        url: additionalSources.wpicPlatinumQuarterly.url,
       },
     ],
     whyItMatters:
@@ -929,6 +1255,72 @@ export const nodeDetails: NodeDetails = {
     whyItMatters:
       "The newer source gives the scripted investigation a current 2026 reason to expand the graph upstream.",
   },
+  "supplier-eugia": {
+    confidence: "Primary evidence, contextual branch",
+    facts: [
+      "FDA shortage rows list unavailable presentations tied to demand increase",
+      "This branch is elevated context, not the selected action path",
+    ],
+    prompts: ["Explain risk path", "Review alternate supplier readiness"],
+    sources: [primarySources[0]],
+    whyItMatters:
+      "Eugia helps show that backup suppliers can also be constrained when demand shifts during a shortage.",
+  },
+  "supplier-fresenius": {
+    confidence: "Primary evidence, contextual branch",
+    facts: [
+      "FDA shortage rows include shipping-delay context",
+      "Usable redundancy depends on delivery timing, not only supplier count",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [primarySources[0]],
+    whyItMatters:
+      "Fresenius Kabi is a visible redundancy branch where logistics timing can still limit hospital availability.",
+  },
+  "supplier-pfizer": {
+    confidence: "Primary evidence, contextual branch",
+    facts: [
+      "FDA shortage rows include limited or unavailable presentations tied to demand increase",
+      "This branch supports the need to verify approved alternatives",
+    ],
+    prompts: ["Check demand pressure", "Review alternate supplier readiness"],
+    sources: [primarySources[0]],
+    whyItMatters:
+      "Pfizer / Hospira stays visible so the hospital user sees that alternate suppliers are not automatically usable supply.",
+  },
+  "supplier-gland-bpi": {
+    confidence: "Primary evidence, watch branch",
+    facts: [
+      "FDA shortage rows include discontinued presentations",
+      "Discontinuations reduce backup options",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [primarySources[0]],
+    whyItMatters:
+      "Gland / BPI Labs is a lower-intensity branch showing how product discontinuations narrow fallback capacity.",
+  },
+  "supplier-teva": {
+    confidence: "Visible redundancy context",
+    facts: [
+      "Lower-risk supplier branch retained for graph completeness",
+      "Evidence should be treated as listing context rather than a critical constraint",
+    ],
+    prompts: ["Review alternate supplier readiness"],
+    sources: [primarySources[0]],
+    whyItMatters:
+      "Teva provides a calmer supplier reference so the graph does not imply every supplier is equally urgent.",
+  },
+  "supplier-apotex": {
+    confidence: "Primary evidence, watch branch",
+    facts: [
+      "FDA shortage rows include discontinued presentations",
+      "Discontinued presentations can reduce practical redundancy",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [primarySources[0]],
+    whyItMatters:
+      "Teyro / Apotex is a watch branch that supports alternate-supplier checks without becoming the demo's red path.",
+  },
   "source-fda-carboplatin": {
     confidence: "Primary Evidence Satellite",
     facts: [
@@ -940,6 +1332,49 @@ export const nodeDetails: NodeDetails = {
     sources: [primarySources[0]],
     whyItMatters:
       "This Evidence Satellite is the main proof point for the focused shortage signal.",
+  },
+  "source-fda-cisplatin": {
+    confidence: "Primary Evidence Satellite",
+    facts: [
+      "Related platinum chemotherapy shortage context",
+      "Supports shared upstream exposure for the overview graph",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [additionalSources.fdaCisplatin],
+    whyItMatters:
+      "This source supports the related cisplatin node without shifting the demo away from carboplatin.",
+  },
+  "source-fda-oxaliplatin": {
+    confidence: "Primary Evidence Satellite",
+    facts: [
+      "Related platinum chemotherapy listing context",
+      "Supports shared platinum chemotherapy monitoring",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [additionalSources.fdaOxaliplatin],
+    whyItMatters: "This source supports the related oxaliplatin node as category context.",
+  },
+  "source-ashp-oncology": {
+    confidence: "Clinical Evidence Satellite",
+    facts: [
+      "Clinical shortage list context for oncology medicines",
+      "Used as supporting evidence for watch-level oncology branches",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [additionalSources.ashpOncology],
+    whyItMatters:
+      "This source keeps lower-priority oncology risks evidence-backed without creating another action path.",
+  },
+  "source-fda-sterile-injectables": {
+    confidence: "Context Evidence Satellite",
+    facts: [
+      "News analysis of generic sterile injectable shortage economics",
+      "Supports sterile-injectable manufacturing fragility as a general risk factor",
+    ],
+    prompts: ["Explain risk path"],
+    sources: [additionalSources.fdaSterileInjectables],
+    whyItMatters:
+      "This source backs the sterile injectable layer as context rather than direct carboplatin proof.",
   },
   "source-ashp-carboplatin": {
     confidence: "Clinical Evidence Satellite",
@@ -1000,17 +1435,11 @@ export const nodeDetails: NodeDetails = {
   "source-marketwatch-platinum": {
     confidence: "Upstream risk signal",
     facts: [
-      "Supports platinum-market pressure",
+      "Supports platinum-market pressure and supply deficit context",
       "Risk amplifier only, not direct shortage causality",
     ],
     prompts: ["Find newer evidence"],
-    sources: [
-      {
-        meta: "Market context",
-        title: "Why platinum prices continue to lose luster despite a supply shortage",
-        url: "https://www.marketwatch.com/story/why-platinum-prices-continue-to-lose-luster-despite-a-supply-shortage-72029047",
-      },
-    ],
+    sources: [additionalSources.wpicPlatinumQuarterly],
     whyItMatters:
       "This Evidence Satellite shows how upstream market signals can be represented without overstating certainty.",
   },

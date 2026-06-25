@@ -3816,7 +3816,15 @@ blockquote footer {
   right: 1.25rem;
 }
 
+.medicine-graph-screen.view-medicine-focus .medicine-graph-nav {
+  right: 1.25rem;
+}
+
 .medicine-graph-screen.is-overview .medicine-graph-stage {
+  inset: 5.75rem 0.75rem 0.75rem;
+}
+
+.medicine-graph-screen.view-medicine-focus .medicine-graph-stage {
   inset: 5.75rem 0.75rem 0.75rem;
 }
 
@@ -3885,6 +3893,12 @@ blockquote footer {
   stroke: var(--sanitas-watch);
 }
 
+.medicine-risk-link.is-evidence-link {
+  opacity: 0.5;
+  stroke-dasharray: 0.8 1.15;
+  stroke-width: 0.2;
+}
+
 .medicine-risk-link.is-active {
   filter: drop-shadow(0 0 7px oklch(0.66 0.24 26 / 74%));
   opacity: 0.92;
@@ -3895,16 +3909,19 @@ blockquote footer {
   opacity: var(--risk-alpha, 0.46);
 }
 
+.medicine-risk-graph.has-node-hover .medicine-risk-link.is-hover-muted,
 .medicine-risk-graph.has-medicine-hover .medicine-risk-link.is-hover-muted {
   opacity: 0.24;
   stroke-width: 0.18;
   filter: none;
 }
 
+.medicine-risk-graph.has-node-hover .medicine-risk-link.is-hover-trace,
 .medicine-risk-graph.has-medicine-hover .medicine-risk-link.is-hover-trace {
   filter: drop-shadow(0 0 8px oklch(0.78 0.09 190 / 58%));
   opacity: 0.94;
   stroke-width: 0.38;
+  stroke-dasharray: none;
 }
 
 .medicine-risk-graph.is-pulsing .medicine-risk-link.is-active {
@@ -3951,9 +3968,17 @@ blockquote footer {
 }
 
 .medicine-risk-node.is-dimmed {
-  opacity: 0.42;
+  opacity: 0.78;
   pointer-events: auto;
-  transform: translate(-50%, -50%) scale(0.9);
+  transform: translate(-50%, -50%) scale(0.96);
+}
+
+.medicine-risk-graph.is-focused .medicine-risk-node.is-dimmed {
+  background:
+    linear-gradient(180deg, oklch(0.95 0.02 190 / 3%), transparent 88%), oklch(0.14 0.019 205 / 82%);
+  box-shadow:
+    0 12px 34px oklch(0.04 0.012 230 / 38%),
+    inset 0 1px 0 oklch(0.95 0.02 190 / 4%);
 }
 
 .medicine-risk-node.is-active-path {
@@ -3972,14 +3997,17 @@ blockquote footer {
     0 20px 60px oklch(0.04 0.012 230 / 56%);
 }
 
+.medicine-risk-graph.has-node-hover .medicine-risk-node.is-hover-muted,
 .medicine-risk-graph.has-medicine-hover .medicine-risk-node.is-hover-muted {
   opacity: 0.16;
 }
 
+.medicine-risk-graph.has-node-hover .medicine-risk-node.node-medicine.is-hover-muted,
 .medicine-risk-graph.has-medicine-hover .medicine-risk-node.node-medicine.is-hover-muted {
   opacity: 0.38;
 }
 
+.medicine-risk-graph.has-node-hover .medicine-risk-node.is-hover-trace,
 .medicine-risk-graph.has-medicine-hover .medicine-risk-node.is-hover-trace {
   z-index: 16;
   border-color: oklch(0.82 0.06 190 / 62%);
@@ -4077,20 +4105,64 @@ blockquote footer {
 }
 
 .medicine-risk-node.node-source {
-  width: 7.65rem;
-  min-height: 3.2rem;
+  width: 2.28rem;
+  height: 2.28rem;
+  min-height: 2.28rem;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
   border-radius: 999px;
-  padding: 0.5rem 0.62rem;
+  padding: 0;
+  justify-items: center;
+  transition:
+    top 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    left 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    min-height 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    padding 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease,
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
 }
 
-.medicine-risk-node.node-source small {
+.medicine-risk-node.node-source strong,
+.medicine-risk-node.node-source small,
+.medicine-risk-node.node-source em {
   display: none;
 }
 
 .medicine-risk-node.node-source .node-icon {
-  width: 1.42rem;
-  height: 1.42rem;
+  width: 100%;
+  height: 100%;
+  grid-row: auto;
   border-radius: 999px;
+}
+
+.medicine-risk-node.node-source:hover,
+.medicine-risk-node.node-source.is-selected {
+  width: 8.9rem;
+  height: auto;
+  min-height: 3.05rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.22rem 0.48rem;
+  padding: 0.44rem 0.58rem;
+  justify-items: start;
+}
+
+.medicine-risk-node.node-source:hover .node-icon,
+.medicine-risk-node.node-source.is-selected .node-icon {
+  width: 1.38rem;
+  height: 1.38rem;
+  grid-row: span 2;
+}
+
+.medicine-risk-node.node-source:hover strong,
+.medicine-risk-node.node-source.is-selected strong,
+.medicine-risk-node.node-source:hover em,
+.medicine-risk-node.node-source.is-selected em {
+  display: block;
 }
 
 .medicine-risk-node.is-new-evidence {
@@ -4132,6 +4204,12 @@ blockquote footer {
 .medicine-risk-graph.is-overview .medicine-risk-link.is-active {
   opacity: 0.56;
   stroke-width: 0.26;
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-link.is-evidence-link {
+  opacity: 0.48;
+  stroke-dasharray: 0.75 1.25;
+  stroke-width: 0.2;
 }
 
 .medicine-risk-graph.is-overview .medicine-risk-link.is-critical-chain {
@@ -4279,6 +4357,34 @@ blockquote footer {
   filter: drop-shadow(0 0 10px oklch(0.73 0.08 190 / 58%));
 }
 
+.medicine-risk-graph.is-overview .medicine-risk-node.node-source.is-overview-icon:hover,
+.medicine-risk-graph.is-overview .medicine-risk-node.node-source.is-overview-icon.is-selected {
+  width: 8.7rem;
+  height: auto;
+  min-height: 3.05rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.22rem 0.48rem;
+  padding: 0.44rem 0.58rem;
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-node.node-source.is-overview-icon:hover .node-icon,
+.medicine-risk-graph.is-overview
+  .medicine-risk-node.node-source.is-overview-icon.is-selected
+  .node-icon {
+  width: 1.38rem;
+  height: 1.38rem;
+  grid-row: span 2;
+}
+
+.medicine-risk-graph.is-overview .medicine-risk-node.node-source.is-overview-icon:hover strong,
+.medicine-risk-graph.is-overview
+  .medicine-risk-node.node-source.is-overview-icon.is-selected
+  strong,
+.medicine-risk-graph.is-overview .medicine-risk-node.node-source.is-overview-icon:hover em,
+.medicine-risk-graph.is-overview .medicine-risk-node.node-source.is-overview-icon.is-selected em {
+  display: block;
+}
+
 .medicine-risk-graph.is-focused .medicine-risk-node {
   width: 8.8rem;
   min-height: 4.15rem;
@@ -4295,7 +4401,16 @@ blockquote footer {
 }
 
 .medicine-risk-graph.is-focused .medicine-risk-node.node-source {
-  width: 6.8rem;
+  width: 2.28rem;
+  height: 2.28rem;
+  min-height: 2.28rem;
+}
+
+.medicine-risk-graph.is-focused .medicine-risk-node.node-source:hover,
+.medicine-risk-graph.is-focused .medicine-risk-node.node-source.is-selected {
+  width: 8.6rem;
+  height: auto;
+  min-height: 3.05rem;
 }
 
 .medicine-risk-graph.is-focused .medicine-risk-node strong {
@@ -4303,6 +4418,7 @@ blockquote footer {
 }
 
 .medicine-risk-graph.is-focused .medicine-risk-node small {
+  color: oklch(0.7 0.03 196);
   font-size: 0.65rem;
 }
 
@@ -4453,6 +4569,201 @@ blockquote footer {
   margin-bottom: 0.28rem;
   color: oklch(0.82 0.1 174);
   font-size: 0.86rem;
+}
+
+.report-preview {
+  display: grid;
+  gap: 0.72rem;
+  border-color: oklch(0.66 0.24 26 / 42%);
+  background:
+    radial-gradient(circle at 12% 8%, oklch(0.66 0.24 26 / 14%), transparent 5.8rem),
+    oklch(0.12 0.018 205 / 72%);
+}
+
+.report-preview-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.report-preview-header p,
+.report-preview-header h3,
+.report-finding,
+.report-action-box p,
+.report-confidence p,
+.report-caveats p {
+  margin: 0;
+}
+
+.report-preview-header p {
+  color: var(--sanitas-faint);
+  font-size: 0.68rem;
+  font-weight: 740;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-preview-header h3 {
+  margin-top: 0.2rem;
+  color: var(--sanitas-text);
+  font-size: 1rem;
+  font-weight: 690;
+  line-height: 1.14;
+}
+
+.report-status-pill {
+  display: inline-flex;
+  min-height: 1.65rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid oklch(0.66 0.24 26 / 48%);
+  border-radius: 999px;
+  background: oklch(0.24 0.08 29 / 54%);
+  padding: 0 0.55rem;
+  color: oklch(0.88 0.13 45);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.report-finding {
+  color: var(--sanitas-text);
+  font-size: 0.86rem;
+  line-height: 1.42;
+}
+
+.report-path-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.report-path-strip span {
+  display: inline-flex;
+  min-height: 1.85rem;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.report-path-strip em {
+  color: var(--sanitas-faint);
+  font-style: normal;
+}
+
+.report-path-strip strong {
+  margin: 0;
+  border: 1px solid oklch(0.66 0.24 26 / 32%);
+  border-radius: 999px;
+  background: oklch(0.2 0.055 27 / 34%);
+  padding: 0.36rem 0.5rem;
+  color: oklch(0.9 0.08 60);
+  font-size: 0.69rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.report-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.42rem;
+}
+
+.report-evidence-grid article {
+  display: flex;
+  min-width: 0;
+  gap: 0.42rem;
+  align-items: flex-start;
+  border: 1px solid var(--sanitas-border-soft);
+  border-radius: 8px;
+  background: oklch(0.09 0.014 205 / 56%);
+  padding: 0.5rem;
+}
+
+.report-evidence-grid svg {
+  flex: 0 0 auto;
+  color: var(--sanitas-blue);
+}
+
+.report-evidence-grid strong,
+.report-evidence-grid span {
+  display: block;
+}
+
+.report-evidence-grid strong {
+  color: var(--sanitas-text);
+  font-size: 0.68rem;
+  line-height: 1.18;
+}
+
+.report-evidence-grid span {
+  margin-top: 0.16rem;
+  color: var(--sanitas-faint);
+  font-size: 0.62rem;
+  line-height: 1.24;
+}
+
+.report-action-box {
+  border: 1px solid oklch(0.66 0.24 26 / 38%);
+  border-radius: 8px;
+  background: oklch(0.22 0.07 27 / 34%);
+  padding: 0.66rem;
+}
+
+.report-action-box strong {
+  margin-bottom: 0.22rem;
+  color: oklch(0.87 0.13 48);
+}
+
+.report-action-box p,
+.report-confidence p,
+.report-caveats p {
+  color: var(--sanitas-muted);
+  font-size: 0.75rem;
+  line-height: 1.42;
+}
+
+.report-checklist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.38rem 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-checklist li {
+  display: flex;
+  min-width: 0;
+  gap: 0.35rem;
+  align-items: flex-start;
+  color: var(--sanitas-muted);
+  font-size: 0.72rem;
+  line-height: 1.28;
+}
+
+.report-checklist svg {
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+  color: var(--sanitas-watch);
+}
+
+.report-confidence {
+  border-top: 1px solid var(--sanitas-border-soft);
+  padding-top: 0.62rem;
+}
+
+.report-confidence strong {
+  margin-bottom: 0.22rem;
+  color: var(--sanitas-text);
+}
+
+.report-caveats {
+  display: grid;
+  gap: 0.28rem;
 }
 
 .risk-panel-head {
@@ -4774,11 +5085,19 @@ blockquote footer {
     right: 1rem;
   }
 
+  .medicine-graph-screen.view-medicine-focus .medicine-graph-nav {
+    right: 1rem;
+  }
+
   .medicine-graph-stage {
     inset: 5.75rem 0.75rem 20.5rem;
   }
 
   .medicine-graph-screen.is-overview .medicine-graph-stage {
+    inset: 5.75rem 0.75rem 0.75rem;
+  }
+
+  .medicine-graph-screen.view-medicine-focus .medicine-graph-stage {
     inset: 5.75rem 0.75rem 0.75rem;
   }
 

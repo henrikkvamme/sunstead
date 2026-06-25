@@ -31,6 +31,7 @@ import {
 } from "react";
 
 import {
+  carboplatinReportPreview,
   graphEdges,
   graphNodes,
   medicineSupplyChainEdges,
@@ -99,6 +100,144 @@ function riskStyleFor(item: GraphEdge | GraphNode, extra?: CSSProperties) {
   } as CSSProperties;
 }
 
+function detailsForNode(node: GraphNode): NodeDetails[string] {
+  const directDetails = nodeDetails[node.id];
+
+  if (directDetails) {
+    return directDetails;
+  }
+
+  const connectedSourceIds = graphEdges
+    .filter((edge) => edge.from === node.id || edge.to === node.id)
+    .map((edge) => (edge.from === node.id ? edge.to : edge.from))
+    .filter((id) =>
+      graphNodes.some((candidate) => candidate.id === id && candidate.kind === "source"),
+    );
+  const connectedSources = connectedSourceIds.flatMap(
+    (sourceId) => nodeDetails[sourceId]?.sources ?? [],
+  );
+
+  return {
+    confidence: connectedSources.length > 0 ? "Evidence mapped" : "Scenario context",
+    facts: [
+      node.riskReason ?? node.summary,
+      `${connectedSources.length} mapped evidence source${
+        connectedSources.length === 1 ? "" : "s"
+      } connected in the graph`,
+      "This node is supporting context unless it belongs to the highlighted action path",
+    ],
+    prompts: ["Explain risk path", "Review alternate supplier readiness"],
+    sources:
+      connectedSources.length > 0
+        ? connectedSources
+        : [
+            {
+              meta: "Scenario evidence pending",
+              title: "Mapped evidence placeholder",
+              url: "#",
+            },
+          ],
+    whyItMatters:
+      node.riskReason ??
+      `${node.label} contributes to the mapped supply-risk context for Carboplatin Injection.`,
+  };
+}
+
+type LayoutPoint = { x: number; y: number };
+
+function nodeFootprint(node: GraphNode, mode: GraphMode) {
+  if (mode === "overview") {
+    return node.kind === "medicine" ? { height: 4.9, width: 17.8 } : { height: 4.4, width: 4.4 };
+  }
+
+  if (node.kind === "source") {
+    return { height: 4.8, width: 4.8 };
+  }
+
+  if (node.id === selectedMedicineId) {
+    return { height: 8.6, width: 14.4 };
+  }
+
+  return { height: 8.1, width: 13.2 };
+}
+
+function nodeMobility(node: GraphNode) {
+  if (node.kind === "source") {
+    return 1.25;
+  }
+
+  if (node.actionPath || node.id === selectedMedicineId) {
+    return 0.28;
+  }
+
+  return 0.86;
+}
+
+function clampLayoutPoint(point: LayoutPoint, node: GraphNode, mode: GraphMode) {
+  const footprint = nodeFootprint(node, mode);
+  const marginX = footprint.width / 2 + 1.2;
+  const marginY = footprint.height / 2 + 1.2;
+
+  point.x = Math.min(100 - marginX, Math.max(marginX, point.x));
+  point.y = Math.min(100 - marginY, Math.max(marginY, point.y));
+}
+
+function removeNodeOverlaps(points: Map<string, LayoutPoint>, nodes: GraphNode[], mode: GraphMode) {
+  const padding = mode === "overview" ? 1.2 : 1.7;
+
+  for (let iteration = 0; iteration < 90; iteration += 1) {
+    for (let index = 0; index < nodes.length; index += 1) {
+      for (let nextIndex = index + 1; nextIndex < nodes.length; nextIndex += 1) {
+        const first = nodes[index];
+        const second = nodes[nextIndex];
+        const firstPoint = points.get(first.id);
+        const secondPoint = points.get(second.id);
+
+        if (!firstPoint || !secondPoint) {
+          continue;
+        }
+
+        const firstFootprint = nodeFootprint(first, mode);
+        const secondFootprint = nodeFootprint(second, mode);
+        const minX = (firstFootprint.width + secondFootprint.width) / 2 + padding;
+        const minY = (firstFootprint.height + secondFootprint.height) / 2 + padding;
+        const dx = secondPoint.x - firstPoint.x || 0.01;
+        const dy = secondPoint.y - firstPoint.y || 0.01;
+        const overlapX = minX - Math.abs(dx);
+        const overlapY = minY - Math.abs(dy);
+
+        if (overlapX <= 0 || overlapY <= 0) {
+          continue;
+        }
+
+        const firstMobility = nodeMobility(first);
+        const secondMobility = nodeMobility(second);
+        const mobilityTotal = firstMobility + secondMobility;
+        const firstShare = secondMobility / mobilityTotal;
+        const secondShare = firstMobility / mobilityTotal;
+
+        if (overlapX < overlapY) {
+          const shift = overlapX * Math.sign(dx) * 0.58;
+          firstPoint.x -= shift * firstShare;
+          secondPoint.x += shift * secondShare;
+        } else {
+          const shift = overlapY * Math.sign(dy) * 0.58;
+          firstPoint.y -= shift * firstShare;
+          secondPoint.y += shift * secondShare;
+        }
+      }
+    }
+
+    for (const node of nodes) {
+      const point = points.get(node.id);
+
+      if (point) {
+        clampLayoutPoint(point, node, mode);
+      }
+    }
+  }
+}
+
 function buildOverviewLayout(nodes: GraphNode[]) {
   const points = new Map(nodes.map((node) => [node.id, { ...node.overview }]));
   const visibleNodes = nodes.filter((node) => points.has(node.id));
@@ -157,6 +296,18 @@ function buildOverviewLayout(nodes: GraphNode[]) {
     }
   }
 
+  removeNodeOverlaps(points, visibleNodes, "overview");
+
+  return points;
+}
+
+function buildFocusedLayout(nodes: GraphNode[]) {
+  const points = new Map(
+    nodes.map((node) => [node.id, node.detail ? { ...node.detail } : { ...node.overview }]),
+  );
+
+  removeNodeOverlaps(points, nodes, "focused");
+
   return points;
 }
 
@@ -213,7 +364,7 @@ export function Dashboard() {
 
   const activePath = useMemo(() => new Set(riskPathBase), []);
   const selectedNode = graphNodes.find((node) => node.id === selectedNodeId) ?? graphNodes[0];
-  const selectedDetails = nodeDetails[selectedNode.id] ?? nodeDetails[selectedMedicineId];
+  const selectedDetails = detailsForNode(selectedNode);
   const evidenceCount = addedEvidence ? 5 : 4;
   const confidence = addedEvidence ? "92%" : "88%";
   const sidebarOpen =
@@ -663,14 +814,31 @@ function MedicineRiskGraph({
   const drawableEdges = visibleEdges.filter((edge) => byId.has(edge.from) && byId.has(edge.to));
   const hoveredNode = hoveredNodeId ? byId.get(hoveredNodeId) : null;
   const overviewLayout = buildOverviewLayout(visibleNodes);
+  const focusedLayout = buildFocusedLayout(visibleNodes);
   const hoveredMedicineId = hoveredNode?.kind === "medicine" ? hoveredNode.id : null;
   const hoveredMedicineEdgeIds = hoveredMedicineId
     ? new Set(medicineSupplyChainEdges[hoveredMedicineId] ?? [])
     : null;
   const hoveredMedicineNodeIds = new Set<string>();
+  const hoveredEdgeIds = new Set<string>();
+  const hoveredNodeIds = new Set<string>();
   const actionEdgeIds = new Set(
     graphEdges.filter((edge) => edge.actionPath).map((edge) => edge.id),
   );
+
+  if (hoveredNode) {
+    hoveredNodeIds.add(hoveredNode.id);
+
+    for (const edge of drawableEdges) {
+      if (edge.from !== hoveredNode.id && edge.to !== hoveredNode.id) {
+        continue;
+      }
+
+      hoveredEdgeIds.add(edge.id);
+      hoveredNodeIds.add(edge.from);
+      hoveredNodeIds.add(edge.to);
+    }
+  }
 
   if (hoveredMedicineId && hoveredMedicineEdgeIds) {
     hoveredMedicineNodeIds.add(hoveredMedicineId);
@@ -686,10 +854,10 @@ function MedicineRiskGraph({
   }
 
   const pointFor = (node: GraphNode) =>
-    mode === "focused" && node.detail
-      ? node.detail
+    mode === "focused"
+      ? (focusedLayout.get(node.id) ?? node.detail ?? node.overview)
       : (overviewLayout.get(node.id) ?? node.overview);
-  const pathFor = (edge: GraphEdge) => {
+  const pathFor = (edge: GraphEdge, index: number) => {
     const from = byId.get(edge.from);
     const to = byId.get(edge.to);
 
@@ -705,7 +873,8 @@ function MedicineRiskGraph({
       return `M ${fromPoint.x} ${fromPoint.y} L ${toPoint.x} ${toPoint.y}`;
     }
 
-    const controlOffset = 3.2;
+    const isEvidenceEdge = from.kind === "source" || to.kind === "source";
+    const controlOffset = isEvidenceEdge ? 5.8 + (index % 4) * 0.85 : 3.2;
 
     return `M ${fromPoint.x} ${fromPoint.y} C ${midX} ${fromPoint.y - controlOffset}, ${midX} ${
       toPoint.y + controlOffset
@@ -718,6 +887,7 @@ function MedicineRiskGraph({
         "medicine-risk-graph",
         `is-${mode}`,
         pulsePath && "is-pulsing",
+        Boolean(hoveredNode) && "has-node-hover",
         Boolean(hoveredMedicineId) && "has-medicine-hover",
       )}
     >
@@ -740,7 +910,11 @@ function MedicineRiskGraph({
         {drawableEdges.map((edge, index) => {
           const isActive = Boolean(edge.actionPath);
           const isActionEdge = actionEdgeIds.has(edge.id);
+          const isHoveredEdge = hoveredEdgeIds.has(edge.id);
           const isHoveredMedicineEdge = Boolean(hoveredMedicineEdgeIds?.has(edge.id));
+          const fromNode = byId.get(edge.from);
+          const toNode = byId.get(edge.to);
+          const isEvidenceEdge = fromNode?.kind === "source" || toNode?.kind === "source";
           const edgeStyle = riskStyleFor(edge, {
             "--link-delay": `${Math.min(index * 6, 160)}ms`,
           } as CSSProperties);
@@ -752,11 +926,16 @@ function MedicineRiskGraph({
                 `risk-${edge.risk}`,
                 isActive && "is-active",
                 isActionEdge && "is-critical-chain",
-                isHoveredMedicineEdge && "is-hover-trace",
-                Boolean(hoveredMedicineEdgeIds && !isHoveredMedicineEdge) && "is-hover-muted",
+                isEvidenceEdge && "is-evidence-link",
+                (isHoveredEdge || isHoveredMedicineEdge) && "is-hover-trace",
+                Boolean(
+                  hoveredNode &&
+                  !isHoveredEdge &&
+                  (!hoveredMedicineEdgeIds || !isHoveredMedicineEdge),
+                ) && "is-hover-muted",
                 edge.scripted && "is-scripted",
               )}
-              d={pathFor(edge)}
+              d={pathFor(edge, index)}
               key={edge.id}
               style={edgeStyle}
             />
@@ -769,6 +948,7 @@ function MedicineRiskGraph({
         const isActive = activePath.has(node.id);
         const isDimmed = mode === "focused" && !isActive && !node.actionPath;
         const isSource = node.kind === "source";
+        const isHoveredNode = hoveredNodeIds.has(node.id);
         const isHoveredMedicineNode = hoveredMedicineNodeIds.has(node.id);
         const nodeStyle = riskStyleFor(node, {
           "--node-delay": `${Math.min(index * 10, 220)}ms`,
@@ -786,8 +966,9 @@ function MedicineRiskGraph({
               isActive && "is-active-path",
               node.actionPath && "is-action-path",
               isDimmed && "is-dimmed",
-              Boolean(hoveredMedicineId && isHoveredMedicineNode) && "is-hover-trace",
-              Boolean(hoveredMedicineId && !isHoveredMedicineNode) && "is-hover-muted",
+              Boolean(isHoveredNode || (hoveredMedicineId && isHoveredMedicineNode)) &&
+                "is-hover-trace",
+              Boolean(hoveredNode && !isHoveredNode && !isHoveredMedicineNode) && "is-hover-muted",
               selectedNodeId === node.id && "is-selected",
               node.id === selectedMedicineId && "is-critical-medicine",
               node.id === scriptedSourceId && "is-new-evidence",
@@ -1083,15 +1264,9 @@ function InvestigationPanel({
       </section>
 
       <section className="risk-panel-section">
-        <h2>{isReportReady ? "Report Placeholder" : "Agent Notes"}</h2>
+        <h2>{isReportReady ? "Report Preview" : "Agent Notes"}</h2>
         {isReportReady ? (
-          <div className="report-ready-box">
-            <strong>Hospital report ready to generate</strong>
-            <p>
-              The future report can use the action path, mapped evidence, supporting API source, and
-              recommended procurement action.
-            </p>
-          </div>
+          <ReportPreview />
         ) : (
           <div className="agent-message-list">
             <article>
@@ -1111,6 +1286,83 @@ function InvestigationPanel({
         investigationState={investigationState}
       />
     </aside>
+  );
+}
+
+function ReportPreview() {
+  const report = carboplatinReportPreview;
+  const actionPathNodes = report.actionPathNodeIds
+    .map((nodeId) => graphNodes.find((node) => node.id === nodeId))
+    .filter((node): node is GraphNode => Boolean(node));
+  const evidenceSources = report.evidenceSourceNodeIds.flatMap((nodeId) => {
+    const node = graphNodes.find((candidate) => candidate.id === nodeId);
+    const source = nodeDetails[nodeId]?.sources[0];
+
+    return node ? [{ node, source }] : [];
+  });
+  const statusLabel = report.status === "action-needed" ? "Action needed" : report.status;
+
+  return (
+    <div className="report-ready-box report-preview" aria-label={report.title}>
+      <div className="report-preview-header">
+        <div>
+          <p>{report.generatedAtLabel}</p>
+          <h3>{report.title}</h3>
+        </div>
+        <span className={cn("report-status-pill", `is-${report.status}`)}>
+          <ShieldAlert aria-hidden size={13} />
+          {statusLabel}
+        </span>
+      </div>
+
+      <p className="report-finding">{report.headlineFinding}</p>
+
+      <div className="report-path-strip" aria-label="Risk Path">
+        {actionPathNodes.map((node, index) => (
+          <span key={node.id}>
+            {index > 0 ? <em aria-hidden>{"->"}</em> : null}
+            <strong>{node.label}</strong>
+          </span>
+        ))}
+      </div>
+
+      <div className="report-evidence-grid" aria-label="Prioritized Evidence Sources">
+        {evidenceSources.map(({ node, source }) => (
+          <article key={node.id}>
+            <FileText aria-hidden size={13} />
+            <div>
+              <strong>{node.label}</strong>
+              <span>{source?.meta ?? node.summary}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="report-action-box">
+        <strong>{report.recommendedAction.title}</strong>
+        <p>{report.recommendedAction.summary}</p>
+      </div>
+
+      <ul className="report-checklist">
+        {report.recommendedAction.checklist.map((item) => (
+          <li key={item}>
+            <CheckCircle2 aria-hidden size={13} />
+            {item}
+          </li>
+        ))}
+      </ul>
+
+      <div className="report-confidence">
+        <strong>{report.confidence.label} confidence</strong>
+        <p>{report.confidence.rationale}</p>
+      </div>
+
+      <div className="report-caveats">
+        {report.caveats.map((caveat) => (
+          <p key={caveat}>{caveat}</p>
+        ))}
+      </div>
+    </div>
   );
 }
 
